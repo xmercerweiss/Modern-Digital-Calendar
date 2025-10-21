@@ -1,2 +1,6 @@
 # Modern-Digital-Calendar
- A Java library which displays time using the Modern Digital Calendar
+This is a Java library created as an exploration of my own concept for a reformed calendar and timekeeping system, the _Modern Digital Calendar_ (MDC). This library provides basic utilities for converting dates and times to and from the MDC. Technical documentation of this library can be found in `/docs`; the rest of this file contains an in-depth description of the MDC as a system of timekeeping, including its inspiration and purpose.
+## Introduction
+The Modern Digital Calendar is a variation on the [International Fixed Calendar](https://en.wikipedia.org/wiki/International_Fixed_Calendar) paired with new month names, a set year 0, military timekeeping, and the removal of DST in order to produce a more structured and less ambiguous means of timekeeping. It is, in essence, a nerd's wishlist for calendar reform worked into a single, unified system. 
+
+This project is not created under any delusion of future mass adoption, it's purely a passion project for personal use. However, if you have any thoughts or uses regarding this system, I'd love to hear about them! Shoot me an email at `mercerweissx@gmail.com`, and I'll respond ASIFLI (as soon as I feel like it.) Any part of this system or project my be used however you like, with or without my permission. 
