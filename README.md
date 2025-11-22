@@ -6,18 +6,15 @@ The Modern Digital Calendar is a variation on the [International Fixed Calendar]
 
 This project was not created under any delusion of future mass adoption, it's purely a passion project for personal use. However, if you have any thoughts on or uses for this project, I'd love to hear about them! Shoot me an email at `mercerweissx@gmail.com`, and I'll respond ASAIFLI (as soon as I feel like it.) Any part of this system or project my be used however you like, with or without my permission. 
 
-## Internal Representation
-The MDC represents all dates using a signed 64-bit integer representing the number of days before or since January 1st, 1970 on the Gregorian calendar: the UNIX epoch. The epoch is of special significance to the MDC. This library does not implement timekeeping, only datekeeping, as the times of each day are kept exactly the same as they are normally. When keeping track of the time of day while using this library, you must use a separate `java.time.LocalTime` object, as no `ModernDigitalDatetime` object is provided.
-
-## Datekeeping
+## Description
 ### Year 0
 In the MDC, the UNIX epoch is the basis for year 0. 1970 CE Gregorian becomes 0 SE, 0 years _Since Epoch_. Years before 1970 are unceremoniously referred to as a number of years BE, _Before Epoch_. Is it heretical to elevate the UNIX epoch to the birth of Christ? This is left as a question for the reader.
 
-### Leap Days
-Keeping with the [International Fixed Calendar](https://en.wikipedia.org/wiki/International_Fixed_Calendar), every year includes one leap day not belonging to any week, weekday, or month. Additional leap days, also not belonging to any week or month, are added with the same frequency as in the Gregorian Calendar. While it complicates the math somewhat, leap years coincide between the Gregorian and Modern Digital Calendars. As a result, years 2, 6, 10, etc. SE **are** leap years, though the same rules for frequency apply to the MDC. In order to determine if a year is a leap year in the MDC, 1970 to the given year must be added before performing the standard calculations. Yes, this is somewhat inelegant, but aligning leap years with the Gregorian calendar helps make the MDC more practical. 
+### Leap Dayserforming the standard calculations. Yes, this is somewhat inelegant, but aligning leap years wit
+Keeping with the [International Fixed Calendar](https://en.wikipedia.org/wiki/International_Fixed_Calendar), every year includes one leap day not belonging to any week, weekday, or month. Additional leap days, also not belonging to any week or month, are added with the same frequency as in the Gregorian Calendar. While it complicates the math somewhat, leap years coincide between the Gregorian and Modern Digital Calendars. As a result, years 2, 6, 10, etc. SE **are** leap years, though the same rules for frequency apply to the MDC. In order to determine if a year is a leap year in the MDC, add 1,970 to the given year before ph the Gregorian calendar helps make the MDC more practical. 
 
 All leap days occur consecutively at the end of every year, and may be denoted as Leap 1st, Leap 2nd, etc. of a given year. Notes
-on representation of leap days follows later in this document.
+on the representation of leap days follows later in this document.
 ### Months
 Years each have 13 months of 28 days, in accordance with the [IFC](https://en.wikipedia.org/wiki/International_Fixed_Calendar). However, all weeks (and therefore months) begin on Monday rather than Sunday, matching the weekday numbering system prescribed by [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Week_dates). Every month starts on Monday the 1st and ends on Sunday the 28th. The following table lists the enumerated value of each day of the week.
 | Value | Day of Week |
