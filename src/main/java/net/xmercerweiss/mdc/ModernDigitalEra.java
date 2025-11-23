@@ -1,22 +1,17 @@
 package net.xmercerweiss.mdc;
 
-import java.util.List;
+import java.io.Serializable;
 import java.util.Locale;
 import java.time.chrono.Era;
 import java.time.format.TextStyle;
 
 
-public enum ModernDigitalEra implements Era
+public enum ModernDigitalEra
+  implements Era, Serializable
 {
   // Enumerated Constants
   BEFORE_EPOCH(0, "Before Epoch", "BE", "-"),
   SINCE_EPOCH(1, "Since Epoch", "SE", "+");
-
-  // Class Constants
-  public static final List<Era> ERAS = List.of(
-    BEFORE_EPOCH,
-    SINCE_EPOCH
-  );
 
   // Instance Fields
   final int VALUE;
