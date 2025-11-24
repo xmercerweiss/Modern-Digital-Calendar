@@ -21,6 +21,12 @@ public enum ModernDigitalEra
   private static final String ADJUST_INTO_ERR_MSG =
     "ModernDigitalEra.adjustInto() not supported; call ModernDigitalDate.with(ERA, thisEra.getValue()) instead";
 
+  // Static Methods
+  public static Era ofValue(long era)
+  {
+    return era <= 0 ? BEFORE_EPOCH : SINCE_EPOCH;
+  }
+
   // Instance Fields
   final int VALUE;
   final String FULL_NAME;

@@ -1,31 +1,65 @@
 package net.xmercerweiss.mdc;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.time.chrono.*;
 import java.time.temporal.*;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
+import static java.util.Map.entry;
+import static java.time.temporal.ChronoField.*;
+
 
 public class ModernDigitalDate
   implements ChronoLocalDate, Serializable
 {
+  // Class Constance
+  private static final ModernDigitalChronology CHRONO = ModernDigitalChronology.INSTANCE;
+
+  // Instance Fields
+  private final Era ERA_ENUM;
+  private final Map<TemporalField,Long> FIELDS;
+
+  // Constructors
+  private ModernDigitalDate(Era era, long yearOfEra, long monthOfYear, long dayOfMonth)
+  {
+    ERA_ENUM = era;
+    long prolepticYear = CHRONO.prolepticYear(
+      ERA_ENUM,
+      (int) yearOfEra
+    );
+    long epochDay = CHRONO.epochDay(
+      ERA_ENUM.getValue(),
+      yearOfEra,
+      monthOfYear,
+      dayOfMonth
+    );
+    FIELDS = Map.ofEntries(
+      entry(ERA, ERA_ENUM.getLong(ERA)),
+      entry(YEAR_OF_ERA, yearOfEra),
+      entry(MONTH_OF_YEAR, monthOfYear),
+      entry(DAY_OF_MONTH, dayOfMonth),
+      entry(YEAR, prolepticYear),
+      entry(EPOCH_DAY, epochDay)
+    );
+  }
   @Override
   public Chronology getChronology()
   {
-    return ModernDigitalChronology.INSTANCE;
+    return CHRONO;
   }
 
   @Override
   public Era getEra()
   {
-    return ChronoLocalDate.super.getEra();
+    return ERA_ENUM;
   }
 
   @Override
   public boolean isLeapYear()
   {
-    return ChronoLocalDate.super.isLeapYear();
+    return CHRONO.isLeapYear(FIELDS.get(YEAR));
   }
 
   @Override
@@ -49,7 +83,7 @@ public class ModernDigitalDate
   @Override
   public ValueRange range(TemporalField field)
   {
-    return getChronology().range((ChronoField) field);
+    return CHRONO.range((ChronoField) field);
   }
 
   @Override
@@ -103,7 +137,7 @@ public class ModernDigitalDate
   @Override
   public <R> R query(TemporalQuery<R> query)
   {
-    return ChronoLocalDate.super.query(query);
+    return query.queryFrom(this);
   }
 
   @Override

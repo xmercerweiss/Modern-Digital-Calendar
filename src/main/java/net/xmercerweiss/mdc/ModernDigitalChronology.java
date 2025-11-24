@@ -33,7 +33,7 @@ public class ModernDigitalChronology extends AbstractChronology
   // Constructors
   private ModernDigitalChronology()
   {
-
+    // Private no-arg constructor for Singleton instance, intentionally blank
   }
 
   // Public Override Methods
@@ -195,7 +195,7 @@ public class ModernDigitalChronology extends AbstractChronology
   @Override
   public ChronoPeriod period(int years, int months, int days)
   {
-    return super.period(years, months, days);
+    return Period.of(years, months, days);
   }
 
   @Override
@@ -210,9 +210,9 @@ public class ModernDigitalChronology extends AbstractChronology
     return super.epochSecond(era, yearOfEra, month, dayOfMonth, hour, minute, second, zoneOffset);
   }
 
-  @Override
-  public boolean isIsoBased()
+  // Public Methods
+  public long epochDay(long era, long yearOfEra, long monthOfYear, long dayOfMonth)
   {
-    return super.isIsoBased();
+    return 0;
   }
 }
