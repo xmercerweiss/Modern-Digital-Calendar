@@ -14,7 +14,7 @@ import static java.time.temporal.ChronoField.*;
 public class ModernDigitalDate
   implements ChronoLocalDate, Serializable
 {
-  // Class Constance
+  // Class Constants
   private static final ModernDigitalChronology CHRONO = ModernDigitalChronology.INSTANCE;
 
   // Instance Fields
@@ -24,14 +24,15 @@ public class ModernDigitalDate
   // Constructors
   private ModernDigitalDate(Era era, long yearOfEra, long monthOfYear, long dayOfMonth)
   {
+    validateFields(era, yearOfEra, monthOfYear, dayOfMonth);
     ERA_ENUM = era;
     long prolepticYear = CHRONO.prolepticYear(
       ERA_ENUM,
       (int) yearOfEra
     );
     long epochDay = CHRONO.epochDay(
-      ERA_ENUM.getValue(),
-      yearOfEra,
+      ERA_ENUM,
+      (int) yearOfEra,
       monthOfYear,
       dayOfMonth
     );
@@ -44,6 +45,48 @@ public class ModernDigitalDate
       entry(EPOCH_DAY, epochDay)
     );
   }
+
+  // Public Override Methods
+  @Override
+  public boolean isSupported(TemporalField field)
+  {
+    return FIELDS.containsKey(
+      CHRONO.toInternalField(field)
+    );
+  }
+
+  @Override
+  public boolean isSupported(TemporalUnit unit)
+  {
+    return FIELDS.containsKey(
+      CHRONO.toInternalField(unit)
+    );
+  }
+
+  @Override
+  public boolean isLeapYear()
+  {
+    return CHRONO.isLeapYear(FIELDS.get(YEAR));
+  }
+
+  @Override
+  public boolean isAfter(ChronoLocalDate other)
+  {
+    return ChronoLocalDate.super.isAfter(other);
+  }
+
+  @Override
+  public boolean isBefore(ChronoLocalDate other)
+  {
+    return ChronoLocalDate.super.isBefore(other);
+  }
+
+  @Override
+  public boolean isEqual(ChronoLocalDate other)
+  {
+    return ChronoLocalDate.super.isEqual(other);
+  }
+
   @Override
   public Chronology getChronology()
   {
@@ -57,9 +100,23 @@ public class ModernDigitalDate
   }
 
   @Override
-  public boolean isLeapYear()
+  public int get(TemporalField field)
   {
-    return CHRONO.isLeapYear(FIELDS.get(YEAR));
+    return (int) getLong(field);
+  }
+
+  @Override
+  public long getLong(TemporalField field)
+  {
+    if (isSupported(field))
+      return FIELDS.get(field);
+    else throw ModernDigitalChronology.invalidFieldError();
+  }
+
+  @Override
+  public long toEpochDay()
+  {
+    return FIELDS.get(EPOCH_DAY);
   }
 
   @Override
@@ -71,37 +128,13 @@ public class ModernDigitalDate
   @Override
   public int lengthOfYear()
   {
-    return ChronoLocalDate.super.lengthOfYear();
-  }
-
-  @Override
-  public boolean isSupported(TemporalField field)
-  {
-    return ChronoLocalDate.super.isSupported(field);
+    return isLeapYear() ? 366 : 365;
   }
 
   @Override
   public ValueRange range(TemporalField field)
   {
-    return CHRONO.range((ChronoField) field);
-  }
-
-  @Override
-  public int get(TemporalField field)
-  {
-    return ChronoLocalDate.super.get(field);
-  }
-
-  @Override
-  public boolean isSupported(TemporalUnit unit)
-  {
-    return ChronoLocalDate.super.isSupported(unit);
-  }
-
-  @Override
-  public ChronoLocalDate with(TemporalAdjuster adjuster)
-  {
-    return ChronoLocalDate.super.with(adjuster);
+    return CHRONO.range(field);
   }
 
   @Override
@@ -135,18 +168,6 @@ public class ModernDigitalDate
   }
 
   @Override
-  public <R> R query(TemporalQuery<R> query)
-  {
-    return query.queryFrom(this);
-  }
-
-  @Override
-  public Temporal adjustInto(Temporal temporal)
-  {
-    return ChronoLocalDate.super.adjustInto(temporal);
-  }
-
-  @Override
   public long until(Temporal endExclusive, TemporalUnit unit)
   {
     return 0;
@@ -165,44 +186,38 @@ public class ModernDigitalDate
   }
 
   @Override
+  public <R> R query(TemporalQuery<R> query)
+  {
+    return query.queryFrom(this);
+  }
+
+  @Override
+  public int compareTo(ChronoLocalDate that)
+  {
+    if (this.toEpochDay() == that.toEpochDay())
+      return this.getChronology() == that.getChronology() ?
+        0 : -1;
+    else
+      return Long.compare(this.toEpochDay(), that.toEpochDay());
+  }
+
+  @Override
   public ChronoLocalDateTime<?> atTime(LocalTime localTime)
   {
-    return ChronoLocalDate.super.atTime(localTime);
+    throw ModernDigitalChronology.noTimeOperationsError();
   }
 
-  @Override
-  public long toEpochDay()
+  // Private Methods
+  private void validateFields(Era era, long yearOfEra, long monthOfYear, long dayOfMonth)
   {
-    return ChronoLocalDate.super.toEpochDay();
-  }
-
-  @Override
-  public int compareTo(ChronoLocalDate other)
-  {
-    return ChronoLocalDate.super.compareTo(other);
-  }
-
-  @Override
-  public boolean isAfter(ChronoLocalDate other)
-  {
-    return ChronoLocalDate.super.isAfter(other);
-  }
-
-  @Override
-  public boolean isBefore(ChronoLocalDate other)
-  {
-    return ChronoLocalDate.super.isBefore(other);
-  }
-
-  @Override
-  public boolean isEqual(ChronoLocalDate other)
-  {
-    return ChronoLocalDate.super.isEqual(other);
-  }
-
-  @Override
-  public long getLong(TemporalField field)
-  {
-    return 0;
+    if (
+      !(era instanceof ModernDigitalEra) ||
+      !range(YEAR_OF_ERA).isValidValue(yearOfEra) ||
+      !range(MONTH_OF_YEAR).isValidValue(monthOfYear) ||
+      !range(DAY_OF_MONTH).isValidValue(dayOfMonth)
+    )
+    {
+      throw ModernDigitalChronology.invalidDateError();
+    }
   }
 }

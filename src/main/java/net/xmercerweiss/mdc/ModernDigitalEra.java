@@ -11,20 +11,15 @@ public enum ModernDigitalEra
   implements Era, Serializable
 {
   // Enumerated Constants
-  BEFORE_EPOCH(0, "Before Epoch", "BE", "-"),
-  SINCE_EPOCH(1, "Since Epoch", "SE", "+");
+  BEFORE_EPOCH(0, "Before Epoch", "BE", "B"),
+  SINCE_EPOCH(1, "Since Epoch", "SE", "S");
 
-  // Class Constants
-  private static final String INV_FIELD_ERR_MSG =
-    "ModernDigitalEra given invalid TemporalField; must be ChronoField.ERA";
-
-  private static final String ADJUST_INTO_ERR_MSG =
-    "ModernDigitalEra.adjustInto() not supported; call ModernDigitalDate.with(ERA, thisEra.getValue()) instead";
-
-  // Static Methods
-  public static Era ofValue(long era)
+  // Error Methods
+  static UnsupportedTemporalTypeException invalidFieldError()
   {
-    return era <= 0 ? BEFORE_EPOCH : SINCE_EPOCH;
+    return new UnsupportedTemporalTypeException(
+      "ModernDigitalEra given invalid TemporalField; must be ChronoField.ERA"
+    );
   }
 
   // Instance Fields
@@ -34,7 +29,7 @@ public enum ModernDigitalEra
   final String NARROW_NAME;
 
   // Constructors
-  private ModernDigitalEra(int value, String fullName, String shortName, String narrowName)
+  ModernDigitalEra(int value, String fullName, String shortName, String narrowName)
   {
     VALUE = value;
     FULL_NAME = fullName;
@@ -60,7 +55,7 @@ public enum ModernDigitalEra
   {
     if (isSupported(field))
       return ValueRange.of(0, 1);
-    else throw new UnsupportedTemporalTypeException(INV_FIELD_ERR_MSG);
+    else throw invalidFieldError();
   }
 
   @Override
@@ -68,7 +63,7 @@ public enum ModernDigitalEra
   {
     if (isSupported(field))
       return getValue();
-    else throw new UnsupportedTemporalTypeException(INV_FIELD_ERR_MSG);
+    else throw invalidFieldError();
   }
 
   @Override
@@ -81,12 +76,6 @@ public enum ModernDigitalEra
   public <R> R query(TemporalQuery<R> query)
   {
     return query.queryFrom(this);
-  }
-
-  @Override
-  public Temporal adjustInto(Temporal temporal)
-  {
-    throw new UnsupportedOperationException(ADJUST_INTO_ERR_MSG);
   }
 
   @Override
