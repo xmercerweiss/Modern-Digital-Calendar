@@ -26,17 +26,15 @@ public class ModernDigitalChronology extends AbstractChronology
   private static final long POS_INFINITY = Long.MAX_VALUE;
 
   private static final long ISO_YEAR_OFFSET = 1970;
-  private static final long FIRST_LEAP_YEAR_BE = -2;
-  private static final long FIRST_LEAP_YEAR_SE = 2;
 
-  private static final long DAYS_PER_WEEK = 7;
-  private static final long WEEKS_PER_MONTH = 4;
-  private static final long DAYS_PER_MONTH = DAYS_PER_WEEK * WEEKS_PER_MONTH;
-  private static final long NON_LEAP_MONTHS_PER_YEAR = 13;
-  private static final long WEEKS_PER_YEAR = WEEKS_PER_MONTH * NON_LEAP_MONTHS_PER_YEAR;
-  private static final long NON_LEAP_DAYS_PER_YEAR = NON_LEAP_MONTHS_PER_YEAR * DAYS_PER_MONTH;
-  private static final long DAYS_PER_COMMON_YEAR = NON_LEAP_DAYS_PER_YEAR + 1;
-  private static final long DAYS_PER_LEAP_YEAR = NON_LEAP_DAYS_PER_YEAR + 2;
+  public static final long DAYS_PER_WEEK = 7;
+  public static final long WEEKS_PER_MONTH = 4;
+  public static final long DAYS_PER_MONTH = DAYS_PER_WEEK * WEEKS_PER_MONTH;
+  public static final long NON_LEAP_MONTHS_PER_YEAR = 13;
+  public static final long WEEKS_PER_YEAR = WEEKS_PER_MONTH * NON_LEAP_MONTHS_PER_YEAR;
+  public static final long NON_LEAP_DAYS_PER_YEAR = NON_LEAP_MONTHS_PER_YEAR * DAYS_PER_MONTH;
+  public static final long DAYS_PER_COMMON_YEAR = NON_LEAP_DAYS_PER_YEAR + 1;
+  public static final long DAYS_PER_LEAP_YEAR = NON_LEAP_DAYS_PER_YEAR + 2;
 
   private static final String ID = "ModernDigital";
   private static final String DISPLAY_NAME = "Modern Digital Calendar";
@@ -314,26 +312,15 @@ public class ModernDigitalChronology extends AbstractChronology
 
   public long epochDay(Era era, int yearOfEra, long monthOfYear, long dayOfMonth)
   {
-    long firstEpochDay = firstEpochDayOfYear(era, yearOfEra);
-    return firstEpochDay - 1 + ordinalDayOfYear(monthOfYear, dayOfMonth);
+    return epochDay(prolepticYear(era, yearOfEra), monthOfYear, dayOfMonth);
   }
 
-  public long firstEpochDayOfYear(Era era, int yearOfEra)
+  public long epochDay(long prolepticYear, long monthOfYear, long dayOfMonth)
   {
-    long prolepticYear = prolepticYear(era, yearOfEra);
-    return firstEpochDayOfYear(prolepticYear);
-  }
-
-  public long firstEpochDayOfYear(long prolepticYear)
-  {
-    if (
-      prolepticYear > FIRST_LEAP_YEAR_BE &&
-      prolepticYear <= FIRST_LEAP_YEAR_SE
-    )
-    {
-      return prolepticYear * DAYS_PER_COMMON_YEAR;
-    }
-    // TODO: Implement and test epoch day calculations
+    int isoYear = (int) (prolepticYear + ISO_YEAR_OFFSET);
+    int dayOfYear = (int) ordinalDayOfYear(monthOfYear, dayOfMonth);
+    LocalDate isoDate = LocalDate.ofYearDay(isoYear, dayOfYear);
+    return isoDate.toEpochDay();
   }
 
   public long ordinalDayOfYear(long monthOfYear, long dayOfMonth)
@@ -349,14 +336,15 @@ public class ModernDigitalChronology extends AbstractChronology
     else throw invalidDateError();
   }
 
-  // Private Methods
-  private long calculateNumberOfLeapYears(long numberOfYears)
+  public long ordinalWeekOfYear(long monthOfYear, long dayOfMonth)
   {
-    long leaps = (numberOfYears / 400) * 97;
-    numberOfYears %= 400;
-    leaps += (numberOfYears / 100) * 24;
-    numberOfYears %= 100;
-    leaps += numberOfYears / 4;
-    return leaps;
+    return ordinalWeekOfYear(
+      ordinalDayOfYear(monthOfYear, dayOfMonth)
+    );
+  }
+
+  public long ordinalWeekOfYear(long dayOfYear)
+  {
+    return 1 + (dayOfYear / DAYS_PER_WEEK);
   }
 }

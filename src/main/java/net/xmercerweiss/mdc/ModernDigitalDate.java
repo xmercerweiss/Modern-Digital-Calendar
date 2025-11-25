@@ -36,12 +36,18 @@ public class ModernDigitalDate
       monthOfYear,
       dayOfMonth
     );
+    long dayOfYear = CHRONO.ordinalDayOfYear(monthOfYear, dayOfMonth);
+    long weekOfYear = CHRONO.ordinalWeekOfYear(dayOfYear);
+    long dayOfWeek = dayOfMonth % CHRONO.DAYS_PER_WEEK;
     FIELDS = Map.ofEntries(
       entry(ERA, ERA_ENUM.getLong(ERA)),
       entry(YEAR_OF_ERA, yearOfEra),
-      entry(MONTH_OF_YEAR, monthOfYear),
-      entry(DAY_OF_MONTH, dayOfMonth),
       entry(YEAR, prolepticYear),
+      entry(MONTH_OF_YEAR, monthOfYear),
+      entry(ALIGNED_WEEK_OF_YEAR, weekOfYear),
+      entry(DAY_OF_YEAR, dayOfYear),
+      entry(DAY_OF_MONTH, dayOfMonth),
+      entry(DAY_OF_WEEK, dayOfWeek),
       entry(EPOCH_DAY, epochDay)
     );
   }
@@ -110,7 +116,7 @@ public class ModernDigitalDate
   {
     if (isSupported(field))
       return FIELDS.get(field);
-    else throw ModernDigitalChronology.invalidFieldError();
+    else throw CHRONO.invalidFieldError();
   }
 
   @Override
@@ -204,7 +210,7 @@ public class ModernDigitalDate
   @Override
   public ChronoLocalDateTime<?> atTime(LocalTime localTime)
   {
-    throw ModernDigitalChronology.noTimeOperationsError();
+    throw CHRONO.noTimeOperationsError();
   }
 
   // Private Methods
@@ -217,7 +223,7 @@ public class ModernDigitalDate
       !range(DAY_OF_MONTH).isValidValue(dayOfMonth)
     )
     {
-      throw ModernDigitalChronology.invalidDateError();
+      throw CHRONO.invalidDateError();
     }
   }
 }
