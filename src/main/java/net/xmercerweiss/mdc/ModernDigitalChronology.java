@@ -22,19 +22,21 @@ public class ModernDigitalChronology extends AbstractChronology
   public static final ModernDigitalChronology INSTANCE =
     new ModernDigitalChronology();
 
-  private static final long NEG_INFINITY = Long.MIN_VALUE;
-  private static final long POS_INFINITY = Long.MAX_VALUE;
+  private static final int INT_NEG_INFINITY = Integer.MIN_VALUE;
+  private static final int INT_POS_INFINITY = Integer.MAX_VALUE;
+  private static final long LONG_NEG_INFINITY = Long.MIN_VALUE;
+  private static final long LONG_POS_INFINITY = Long.MAX_VALUE;
 
-  private static final long ISO_YEAR_OFFSET = 1970;
+  private static final int ISO_YEAR_OFFSET = 1970;
 
-  public static final long DAYS_PER_WEEK = 7;
-  public static final long WEEKS_PER_MONTH = 4;
-  public static final long DAYS_PER_MONTH = DAYS_PER_WEEK * WEEKS_PER_MONTH;
-  public static final long NON_LEAP_MONTHS_PER_YEAR = 13;
-  public static final long WEEKS_PER_YEAR = WEEKS_PER_MONTH * NON_LEAP_MONTHS_PER_YEAR;
-  public static final long NON_LEAP_DAYS_PER_YEAR = NON_LEAP_MONTHS_PER_YEAR * DAYS_PER_MONTH;
-  public static final long DAYS_PER_COMMON_YEAR = NON_LEAP_DAYS_PER_YEAR + 1;
-  public static final long DAYS_PER_LEAP_YEAR = NON_LEAP_DAYS_PER_YEAR + 2;
+  public static final int DAYS_PER_WEEK = 7;
+  public static final int WEEKS_PER_MONTH = 4;
+  public static final int DAYS_PER_MONTH = DAYS_PER_WEEK * WEEKS_PER_MONTH;
+  public static final int NON_LEAP_MONTHS_PER_YEAR = 13;
+  public static final int WEEKS_PER_YEAR = WEEKS_PER_MONTH * NON_LEAP_MONTHS_PER_YEAR;
+  public static final int NON_LEAP_DAYS_PER_YEAR = NON_LEAP_MONTHS_PER_YEAR * DAYS_PER_MONTH;
+  public static final int DAYS_PER_COMMON_YEAR = NON_LEAP_DAYS_PER_YEAR + 1;
+  public static final int DAYS_PER_LEAP_YEAR = NON_LEAP_DAYS_PER_YEAR + 2;
 
   private static final String ID = "ModernDigital";
   private static final String DISPLAY_NAME = "Modern Digital Calendar";
@@ -123,13 +125,13 @@ public class ModernDigitalChronology extends AbstractChronology
   }
 
   @Override
-  public ChronoLocalDate date(Era era, int yearOfEra, int month, int dayOfMonth)
+  public ChronoLocalDate date(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
-    return super.date(era, yearOfEra, month, dayOfMonth);
+    return null;
   }
 
   @Override
-  public ChronoLocalDate date(int prolepticYear, int month, int dayOfMonth)
+  public ChronoLocalDate date(int prolepticYear, int monthOfYear, int dayOfMonth)
   {
     return null;
   }
@@ -226,13 +228,13 @@ public class ModernDigitalChronology extends AbstractChronology
   }
 
   @Override
-  public long epochSecond(int prolepticYear, int month, int dayOfMonth, int hour, int minute, int second, ZoneOffset zoneOffset)
+  public long epochSecond(int prolepticYear, int monthOfYear, int dayOfMonth, int hour, int minute, int second, ZoneOffset zoneOffset)
   {
     throw noTimeOperationsError();
   }
 
   @Override
-  public long epochSecond(Era era, int yearOfEra, int month, int dayOfMonth, int hour, int minute, int second, ZoneOffset zoneOffset)
+  public long epochSecond(Era era, int yearOfEra, int monthOfYear, int dayOfMonth, int hour, int minute, int second, ZoneOffset zoneOffset)
   {
     throw noTimeOperationsError();
   }
@@ -289,8 +291,8 @@ public class ModernDigitalChronology extends AbstractChronology
       return switch (internalField)
       {
         case ERA -> ValueRange.of(0, 1);
-        case YEAR_OF_ERA -> ValueRange.of(0, POS_INFINITY);
-        case YEAR -> ValueRange.of(NEG_INFINITY, POS_INFINITY);
+        case YEAR_OF_ERA -> ValueRange.of(0, INT_POS_INFINITY);
+        case YEAR -> ValueRange.of(INT_NEG_INFINITY, INT_POS_INFINITY);
         case MONTH_OF_YEAR -> ValueRange.of(0, NON_LEAP_MONTHS_PER_YEAR);
         // Leap days belong to "month 0" of year
         case ALIGNED_WEEK_OF_YEAR -> ValueRange.of(0, WEEKS_PER_YEAR);
@@ -300,30 +302,27 @@ public class ModernDigitalChronology extends AbstractChronology
         // The "0th" month (the non-month to which leap days belong) has a max of 2 days
         case DAY_OF_WEEK -> ValueRange.of(0, DAYS_PER_WEEK);
         // Leap days belong to "day 0" of week
-        case EPOCH_DAY -> ValueRange.of(NEG_INFINITY, POS_INFINITY);
-        // The "epoch day" branch duplicates "year" because while they have
-        // the same range of values, they are not enumerated constants representing
-        // the same field within the calendar. They exist independently of one another
+        case EPOCH_DAY -> ValueRange.of(LONG_NEG_INFINITY, LONG_POS_INFINITY);
         default -> throw invalidFieldError();
       };
     }
     else throw invalidFieldError();
   }
 
-  public long epochDay(Era era, int yearOfEra, long monthOfYear, long dayOfMonth)
+  public long epochDay(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
     return epochDay(prolepticYear(era, yearOfEra), monthOfYear, dayOfMonth);
   }
 
-  public long epochDay(long prolepticYear, long monthOfYear, long dayOfMonth)
+  public long epochDay(int prolepticYear, int monthOfYear, int dayOfMonth)
   {
-    int isoYear = (int) (prolepticYear + ISO_YEAR_OFFSET);
-    int dayOfYear = (int) ordinalDayOfYear(monthOfYear, dayOfMonth);
+    int isoYear = prolepticYear + ISO_YEAR_OFFSET;
+    int dayOfYear = ordinalDayOfYear(monthOfYear, dayOfMonth);
     LocalDate isoDate = LocalDate.ofYearDay(isoYear, dayOfYear);
     return isoDate.toEpochDay();
   }
 
-  public long ordinalDayOfYear(long monthOfYear, long dayOfMonth)
+  public int ordinalDayOfYear(int monthOfYear, int dayOfMonth)
   {
     ValueRange monthRange = range(MONTH_OF_YEAR);
     ValueRange dayRange = range(DAY_OF_MONTH);
@@ -336,14 +335,14 @@ public class ModernDigitalChronology extends AbstractChronology
     else throw invalidDateError();
   }
 
-  public long ordinalWeekOfYear(long monthOfYear, long dayOfMonth)
+  public int ordinalWeekOfYear(int monthOfYear, int dayOfMonth)
   {
     return ordinalWeekOfYear(
       ordinalDayOfYear(monthOfYear, dayOfMonth)
     );
   }
 
-  public long ordinalWeekOfYear(long dayOfYear)
+  public int ordinalWeekOfYear(int dayOfYear)
   {
     return 1 + (dayOfYear / DAYS_PER_WEEK);
   }
