@@ -28,7 +28,14 @@ public class ModernDigitalDate
   {
     Era era = CHRONO.eraOf(prolepticYear);
     int yearOfEra = CHRONO.prolepticToEraYear(prolepticYear);
-    return new ModernDigitalDate(era, yearOfEra, monthOfYear, dayOfMonth);
+    return ModernDigitalDate.of(era, yearOfEra, monthOfYear, dayOfMonth);
+  }
+
+  public static ModernDigitalDate ofYearDay(int prolepticYear, int dayOfYear)
+  {
+    int monthOfYear = 1 + (dayOfYear / CHRONO.DAYS_PER_MONTH);
+    int dayOfMonth = dayOfYear % CHRONO.DAYS_PER_MONTH;
+    return ModernDigitalDate.of(prolepticYear, monthOfYear, dayOfMonth);
   }
 
   public static ModernDigitalDate ofEpochDay(long epochDay)
@@ -40,6 +47,14 @@ public class ModernDigitalDate
   {
     LocalDate today = LocalDate.now();
     return ModernDigitalDate.ofEpochDay(today.toEpochDay());
+  }
+
+  public static ModernDigitalDate from(TemporalAccessor temporal)
+  {
+    if (temporal instanceof ChronoLocalDate date)
+      return ModernDigitalDate.ofEpochDay(date.toEpochDay());
+    else
+      throw CHRONO.noTimeOperationsError();
   }
 
   // Instance Fields
@@ -135,27 +150,27 @@ public class ModernDigitalDate
   }
 
   @Override
+  public boolean isAfter(ChronoLocalDate that)
+  {
+    return this.toEpochDay() > that.toEpochDay();
+  }
+
+  @Override
+  public boolean isEqual(ChronoLocalDate that)
+  {
+    return this.toEpochDay() == that.toEpochDay();
+  }
+
+  @Override
+  public boolean isBefore(ChronoLocalDate that)
+  {
+    return this.toEpochDay() < that.toEpochDay();
+  }
+
+  @Override
   public boolean isLeapYear()
   {
     return CHRONO.isLeapYear(FIELDS.get(YEAR));
-  }
-
-  @Override
-  public boolean isAfter(ChronoLocalDate other)
-  {
-    return ChronoLocalDate.super.isAfter(other);
-  }
-
-  @Override
-  public boolean isBefore(ChronoLocalDate other)
-  {
-    return ChronoLocalDate.super.isBefore(other);
-  }
-
-  @Override
-  public boolean isEqual(ChronoLocalDate other)
-  {
-    return ChronoLocalDate.super.isEqual(other);
   }
 
   @Override
@@ -168,6 +183,41 @@ public class ModernDigitalDate
   public Era getEra()
   {
     return ERA_ENUM;
+  }
+
+  public int getYearOfEra()
+  {
+    return get(YEAR_OF_ERA);
+  }
+
+  public int getYear()
+  {
+    return get(YEAR);
+  }
+
+  public int getMonth()
+  {
+    return get(MONTH_OF_YEAR);
+  }
+
+  public int getWeekOfYear()
+  {
+    return get(ALIGNED_WEEK_OF_YEAR);
+  }
+
+  public int getDayOfYear()
+  {
+    return get(DAY_OF_YEAR);
+  }
+
+  public int getDayOfMonth()
+  {
+    return get(DAY_OF_MONTH);
+  }
+
+  public int getDayOfWeek()
+  {
+    return get(DAY_OF_WEEK);
   }
 
   @Override
@@ -193,7 +243,11 @@ public class ModernDigitalDate
   @Override
   public int lengthOfMonth()
   {
-    return 0;
+    int month = getMonth();
+    if (month == 0)
+      return lengthOfYear() - CHRONO.NON_LEAP_DAYS_PER_YEAR;
+    else
+      return CHRONO.DAYS_PER_MONTH;
   }
 
   @Override
@@ -266,10 +320,9 @@ public class ModernDigitalDate
   public int compareTo(ChronoLocalDate that)
   {
     if (this.toEpochDay() == that.toEpochDay())
-      return this.getChronology() == that.getChronology() ?
-        0 : -1;
+      return CHRONO == that.getChronology() ? 0 : -1;
     else
-      return Long.compare(this.toEpochDay(), that.toEpochDay());
+      return (int) (this.toEpochDay() - that.toEpochDay());
   }
 
   @Override

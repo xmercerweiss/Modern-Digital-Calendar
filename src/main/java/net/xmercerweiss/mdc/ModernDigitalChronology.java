@@ -100,7 +100,7 @@ public class ModernDigitalChronology extends AbstractChronology
   static UnsupportedOperationException noTimeOperationsError()
   {
     return new UnsupportedOperationException(
-      "ModernDigitalChronology only implements datekeeping; use LocalTime for timekeeping"
+      "ModernDigitalChronology only implements datekeeping and can only work with purely date-related objects; use LocalTime for timekeeping"
     );
   }
 
@@ -138,55 +138,43 @@ public class ModernDigitalChronology extends AbstractChronology
   @Override
   public ChronoLocalDate date(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
-    return null;
+    return ModernDigitalDate.of(era, yearOfEra, monthOfYear, dayOfMonth);
   }
 
   @Override
   public ChronoLocalDate date(int prolepticYear, int monthOfYear, int dayOfMonth)
   {
-    return null;
+    return ModernDigitalDate.of(prolepticYear, monthOfYear, dayOfMonth);
   }
 
   @Override
   public ChronoLocalDate dateYearDay(Era era, int yearOfEra, int dayOfYear)
   {
-    return super.dateYearDay(era, yearOfEra, dayOfYear);
+    return dateYearDay(prolepticYear(era, yearOfEra), dayOfYear);
   }
 
   @Override
   public ChronoLocalDate dateYearDay(int prolepticYear, int dayOfYear)
   {
-    return null;
+    return ModernDigitalDate.ofYearDay(prolepticYear, dayOfYear);
   }
 
   @Override
   public ChronoLocalDate dateEpochDay(long epochDay)
   {
-    return null;
+    return ModernDigitalDate.ofEpochDay(epochDay);
   }
 
   @Override
   public ChronoLocalDate dateNow()
   {
-    return super.dateNow();
-  }
-
-  @Override
-  public ChronoLocalDate dateNow(ZoneId zone)
-  {
-    return super.dateNow(zone);
-  }
-
-  @Override
-  public ChronoLocalDate dateNow(Clock clock)
-  {
-    return super.dateNow(clock);
+    return ModernDigitalDate.now();
   }
 
   @Override
   public ChronoLocalDate date(TemporalAccessor temporal)
   {
-    return null;
+    return ModernDigitalDate.from(temporal);
   }
 
   @Override
@@ -199,8 +187,9 @@ public class ModernDigitalChronology extends AbstractChronology
   @Override
   public int prolepticYear(Era era, int yearOfEra)
   {
+    ValueRange yearRange = range(YEAR_OF_ERA);
     if (
-      range(YEAR_OF_ERA).isValidValue(yearOfEra) &&
+      yearRange.isValidValue(yearOfEra) &&
       era instanceof ModernDigitalEra mde
     )
       return switch (mde)
@@ -236,6 +225,18 @@ public class ModernDigitalChronology extends AbstractChronology
   public ChronoPeriod period(int years, int months, int days)
   {
     return Period.of(years, months, days);
+  }
+
+  @Override
+  public ChronoLocalDate dateNow(ZoneId zone)
+  {
+    throw noTimeOperationsError();
+  }
+
+  @Override
+  public ChronoLocalDate dateNow(Clock clock)
+  {
+    throw noTimeOperationsError();
   }
 
   @Override
@@ -355,6 +356,9 @@ public class ModernDigitalChronology extends AbstractChronology
 
   public int ordinalWeekOfYear(int dayOfYear)
   {
+    ValueRange dayOfYearRange = range(DAY_OF_YEAR);
+    if (!dayOfYearRange.isValidValue(dayOfYear))
+      throw invalidDateError();
     return 1 + (dayOfYear / DAYS_PER_WEEK);
   }
 
