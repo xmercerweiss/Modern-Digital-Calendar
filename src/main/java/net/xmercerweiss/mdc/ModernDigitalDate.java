@@ -2,9 +2,10 @@ package net.xmercerweiss.mdc;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.HashMap;
+import java.time.*;
 import java.time.chrono.*;
 import java.time.temporal.*;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 import static java.util.Map.entry;
@@ -16,6 +17,30 @@ public class ModernDigitalDate
 {
   // Class Constants
   private static final ModernDigitalChronology CHRONO = ModernDigitalChronology.INSTANCE;
+
+  // Static Methods
+  public static ModernDigitalDate of(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
+  {
+    return new ModernDigitalDate(era, yearOfEra, monthOfYear, dayOfMonth);
+  }
+
+  public static ModernDigitalDate of(int prolepticYear, int monthOfYear, int dayOfMonth)
+  {
+    Era era = CHRONO.eraOf(prolepticYear);
+    int yearOfEra = CHRONO.prolepticToEraYear(prolepticYear);
+    return new ModernDigitalDate(era, yearOfEra, monthOfYear, dayOfMonth);
+  }
+
+  public static ModernDigitalDate ofEpochDay(long epochDay)
+  {
+    return new ModernDigitalDate(epochDay);
+  }
+
+  public static ModernDigitalDate now()
+  {
+    LocalDate today = LocalDate.now();
+    return ModernDigitalDate.ofEpochDay(today.toEpochDay());
+  }
 
   // Instance Fields
   private final Era ERA_ENUM;
@@ -64,6 +89,32 @@ public class ModernDigitalDate
         CHRONO.epochDay(ERA_ENUM, yearOfEra, monthOfYear, dayOfMonth)
       )
     );
+  }
+
+  private ModernDigitalDate(long epochDay)
+  {
+    HashMap<TemporalField,Long> workingFields = epochDayToFields(epochDay);
+    int prolepticYear = Math.toIntExact(workingFields.get(YEAR));
+    int monthOfYear = Math.toIntExact(workingFields.get(MONTH_OF_YEAR));
+    int dayOfMonth = Math.toIntExact(workingFields.get(DAY_OF_MONTH));
+    ERA_ENUM = CHRONO.eraOf(prolepticYear);
+    workingFields.put(
+      ERA,
+      ERA_ENUM.getLong(ERA)
+    );
+    workingFields.put(
+      YEAR_OF_ERA,
+      (long) CHRONO.prolepticToEraYear(prolepticYear)
+    );
+    workingFields.put(
+      ALIGNED_WEEK_OF_YEAR,
+      (long) CHRONO.ordinalWeekOfYear(monthOfYear, dayOfMonth)
+    );
+    workingFields.put(
+      DAY_OF_WEEK,
+      (long) dayOfMonth % CHRONO.DAYS_PER_WEEK
+    );
+    FIELDS = Map.copyOf(workingFields);
   }
 
   // Public Override Methods
@@ -239,5 +290,25 @@ public class ModernDigitalDate
     {
       throw CHRONO.invalidDateError();
     }
+  }
+
+  private HashMap<TemporalField,Long> epochDayToFields(long epochDay)
+  {
+    HashMap<TemporalField,Long> fields = new HashMap<>();
+    long remainingDays = epochDay;
+    long prolepticYear = 400 * (remainingDays / CHRONO.DAYS_PER_400_YEARS);
+    remainingDays %= CHRONO.DAYS_PER_400_YEARS;
+    prolepticYear += 100 * (remainingDays / CHRONO.DAYS_PER_100_YEARS);
+    remainingDays %= CHRONO.DAYS_PER_100_YEARS;
+    prolepticYear += 4 * (remainingDays / CHRONO.DAYS_PER_4_YEARS);
+    remainingDays %= CHRONO.DAYS_PER_4_YEARS;
+    prolepticYear += remainingDays / CHRONO.DAYS_PER_COMMON_YEAR;
+    remainingDays = Math.abs(remainingDays % CHRONO.DAYS_PER_COMMON_YEAR);
+    fields.put(EPOCH_DAY, epochDay);
+    fields.put(YEAR, prolepticYear);
+    fields.put(DAY_OF_YEAR, remainingDays);
+    fields.put(MONTH_OF_YEAR, 1 + (remainingDays / CHRONO.DAYS_PER_MONTH));
+    fields.put(DAY_OF_MONTH, remainingDays % CHRONO.DAYS_PER_MONTH);
+    return fields;
   }
 }
