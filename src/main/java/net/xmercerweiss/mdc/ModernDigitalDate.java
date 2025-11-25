@@ -22,33 +22,47 @@ public class ModernDigitalDate
   private final Map<TemporalField,Long> FIELDS;
 
   // Constructors
-  private ModernDigitalDate(Era era, long yearOfEra, long monthOfYear, long dayOfMonth)
+  private ModernDigitalDate(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
     validateFields(era, yearOfEra, monthOfYear, dayOfMonth);
     ERA_ENUM = era;
-    long prolepticYear = CHRONO.prolepticYear(
-      ERA_ENUM,
-      (int) yearOfEra
-    );
-    long epochDay = CHRONO.epochDay(
-      ERA_ENUM,
-      (int) yearOfEra,
-      monthOfYear,
-      dayOfMonth
-    );
-    long dayOfYear = CHRONO.ordinalDayOfYear(monthOfYear, dayOfMonth);
-    long weekOfYear = CHRONO.ordinalWeekOfYear(dayOfYear);
-    long dayOfWeek = dayOfMonth % CHRONO.DAYS_PER_WEEK;
     FIELDS = Map.ofEntries(
-      entry(ERA, ERA_ENUM.getLong(ERA)),
-      entry(YEAR_OF_ERA, yearOfEra),
-      entry(YEAR, prolepticYear),
-      entry(MONTH_OF_YEAR, monthOfYear),
-      entry(ALIGNED_WEEK_OF_YEAR, weekOfYear),
-      entry(DAY_OF_YEAR, dayOfYear),
-      entry(DAY_OF_MONTH, dayOfMonth),
-      entry(DAY_OF_WEEK, dayOfWeek),
-      entry(EPOCH_DAY, epochDay)
+      entry(
+        ERA,
+        ERA_ENUM.getLong(ERA)
+      ),
+      entry(
+        YEAR_OF_ERA,
+        (long) yearOfEra
+      ),
+      entry(
+        YEAR,
+        (long) CHRONO.prolepticYear(ERA_ENUM, yearOfEra)
+      ),
+      entry(
+        MONTH_OF_YEAR,
+        (long) monthOfYear
+      ),
+      entry(
+        ALIGNED_WEEK_OF_YEAR,
+        (long) CHRONO.ordinalWeekOfYear(monthOfYear, dayOfMonth)
+      ),
+      entry(
+        DAY_OF_YEAR,
+        (long) CHRONO.ordinalDayOfYear(monthOfYear, dayOfMonth)
+      ),
+      entry(
+        DAY_OF_MONTH,
+        (long) dayOfMonth
+      ),
+      entry(
+        DAY_OF_WEEK,
+        (long) dayOfMonth % CHRONO.DAYS_PER_WEEK
+      ),
+      entry(
+        EPOCH_DAY,
+        CHRONO.epochDay(ERA_ENUM, yearOfEra, monthOfYear, dayOfMonth)
+      )
     );
   }
 
@@ -214,7 +228,7 @@ public class ModernDigitalDate
   }
 
   // Private Methods
-  private void validateFields(Era era, long yearOfEra, long monthOfYear, long dayOfMonth)
+  private void validateFields(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
     if (
       !(era instanceof ModernDigitalEra) ||
