@@ -359,7 +359,10 @@ public class ModernDigitalChronology extends AbstractChronology
     ValueRange dayOfYearRange = range(DAY_OF_YEAR);
     if (!dayOfYearRange.isValidValue(dayOfYear))
       throw invalidDateError();
-    return 1 + (dayOfYear / DAYS_PER_WEEK);
+    else if (dayOfYear > NON_LEAP_DAYS_PER_YEAR)
+      return 0;
+    else
+      return 1 + ((dayOfYear - 1) / DAYS_PER_WEEK);
   }
 
   public int prolepticToEraYear(int prolepticYear)
