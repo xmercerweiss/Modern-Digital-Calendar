@@ -18,6 +18,8 @@ public class ModernDigitalDate
   // Class Constants
   private static final ModernDigitalChronology CHRONO = ModernDigitalChronology.INSTANCE;
 
+  private static final String DISPLAY_FMT = "%(d-%02d-%02d MDC";
+
   // Static Methods
   public static ModernDigitalDate of(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
@@ -293,9 +295,8 @@ public class ModernDigitalDate
   @Override
   public String toString()
   {
-    return ("ModernDigitalDate[%s-%04d-%02d-%02d]").formatted(
-      ((ModernDigitalEra) ERA_ENUM).getDisplayName(),
-      getYearOfEra(),
+    return DISPLAY_FMT.formatted(
+      getYear(),
       getMonth(),
       getDayOfMonth()
     );
