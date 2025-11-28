@@ -27,8 +27,7 @@ public class ModernDigitalChronology extends AbstractChronology
   private static final long LONG_NEG_INFINITY = Long.MIN_VALUE;
   private static final long LONG_POS_INFINITY = Long.MAX_VALUE;
 
-  private static final int ISO_YEAR_OFFSET = 1970;
-
+  public static final int ISO_YEAR_OFFSET = 1970;
   public static final int DAYS_PER_WEEK = 7;
   public static final int WEEKS_PER_MONTH = 4;
   public static final int DAYS_PER_MONTH = DAYS_PER_WEEK * WEEKS_PER_MONTH;

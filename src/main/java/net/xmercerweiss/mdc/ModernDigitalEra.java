@@ -22,6 +22,12 @@ public enum ModernDigitalEra
     );
   }
 
+  // Static Methods
+  public static Era ofValue(int value)
+  {
+    return value <= 0 ? BEFORE_EPOCH : SINCE_EPOCH;
+  }
+
   // Instance Fields
   final int VALUE;
   final String FULL_NAME;

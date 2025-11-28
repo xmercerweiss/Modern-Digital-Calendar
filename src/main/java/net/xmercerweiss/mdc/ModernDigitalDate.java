@@ -65,7 +65,7 @@ public class ModernDigitalDate
   private ModernDigitalDate(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
     validateFields(era, yearOfEra, monthOfYear, dayOfMonth);
-    ERA_ENUM = era;
+    ERA_ENUM = yearOfEra == 0 ? ModernDigitalEra.SINCE_EPOCH : era;
     FIELDS = Map.ofEntries(
       entry(
         ERA,
@@ -185,41 +185,6 @@ public class ModernDigitalDate
     return ERA_ENUM;
   }
 
-  public int getYearOfEra()
-  {
-    return get(YEAR_OF_ERA);
-  }
-
-  public int getYear()
-  {
-    return get(YEAR);
-  }
-
-  public int getMonth()
-  {
-    return get(MONTH_OF_YEAR);
-  }
-
-  public int getWeekOfYear()
-  {
-    return get(ALIGNED_WEEK_OF_YEAR);
-  }
-
-  public int getDayOfYear()
-  {
-    return get(DAY_OF_YEAR);
-  }
-
-  public int getDayOfMonth()
-  {
-    return get(DAY_OF_MONTH);
-  }
-
-  public int getDayOfWeek()
-  {
-    return get(DAY_OF_WEEK);
-  }
-
   @Override
   public int get(TemporalField field)
   {
@@ -326,10 +291,58 @@ public class ModernDigitalDate
   }
 
   @Override
+  public String toString()
+  {
+    return ("ModernDigitalDate[%s-%04d-%02d-%02d]").formatted(
+      ((ModernDigitalEra) ERA_ENUM).getDisplayName(),
+      getYearOfEra(),
+      getMonth(),
+      getDayOfMonth()
+    );
+  }
+
+  @Override
   public ChronoLocalDateTime<?> atTime(LocalTime localTime)
   {
     throw CHRONO.noTimeOperationsError();
   }
+
+  // Public Methods
+  public int getYearOfEra()
+  {
+    return get(YEAR_OF_ERA);
+  }
+
+  public int getYear()
+  {
+    return get(YEAR);
+  }
+
+  public int getMonth()
+  {
+    return get(MONTH_OF_YEAR);
+  }
+
+  public int getWeekOfYear()
+  {
+    return get(ALIGNED_WEEK_OF_YEAR);
+  }
+
+  public int getDayOfYear()
+  {
+    return get(DAY_OF_YEAR);
+  }
+
+  public int getDayOfMonth()
+  {
+    return get(DAY_OF_MONTH);
+  }
+
+  public int getDayOfWeek()
+  {
+    return get(DAY_OF_WEEK);
+  }
+
 
   // Private Methods
   private void validateFields(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
@@ -338,30 +351,31 @@ public class ModernDigitalDate
       !(era instanceof ModernDigitalEra) ||
       !range(YEAR_OF_ERA).isValidValue(yearOfEra) ||
       !range(MONTH_OF_YEAR).isValidValue(monthOfYear) ||
-      !range(DAY_OF_MONTH).isValidValue(dayOfMonth)
+      !range(DAY_OF_MONTH).isValidValue(dayOfMonth) ||
+      (monthOfYear == 0 && dayOfMonth > range(DAY_OF_MONTH).getSmallestMaximum()) ||
+      (monthOfYear == 0 && dayOfMonth > 1 && !CHRONO.isLeapYear(
+        CHRONO.prolepticYear(era, yearOfEra)
+      ))
     )
-    {
       throw CHRONO.invalidDateError();
-    }
+
   }
 
   private HashMap<TemporalField,Long> epochDayToFields(long epochDay)
   {
     HashMap<TemporalField,Long> fields = new HashMap<>();
-    long remainingDays = epochDay;
-    long prolepticYear = 400 * (remainingDays / CHRONO.DAYS_PER_400_YEARS);
-    remainingDays %= CHRONO.DAYS_PER_400_YEARS;
-    prolepticYear += 100 * (remainingDays / CHRONO.DAYS_PER_100_YEARS);
-    remainingDays %= CHRONO.DAYS_PER_100_YEARS;
-    prolepticYear += 4 * (remainingDays / CHRONO.DAYS_PER_4_YEARS);
-    remainingDays %= CHRONO.DAYS_PER_4_YEARS;
-    prolepticYear += remainingDays / CHRONO.DAYS_PER_COMMON_YEAR;
-    remainingDays = Math.abs(remainingDays % CHRONO.DAYS_PER_COMMON_YEAR);
+    LocalDate isoDate = LocalDate.ofEpochDay(epochDay);
+    long prolepticYear = isoDate.getYear() - CHRONO.ISO_YEAR_OFFSET;
+    long dayOfYear = isoDate.getDayOfYear();
+    long monthOfYear = dayOfYear > CHRONO.NON_LEAP_DAYS_PER_YEAR ? 0 :
+      1 + ((dayOfYear - 1) / CHRONO.DAYS_PER_MONTH);
+    long dayOfMonth = monthOfYear == 0 ? dayOfYear - CHRONO.NON_LEAP_DAYS_PER_YEAR :
+      1 + ((dayOfYear - 1) % CHRONO.DAYS_PER_MONTH);
     fields.put(EPOCH_DAY, epochDay);
     fields.put(YEAR, prolepticYear);
-    fields.put(DAY_OF_YEAR, remainingDays);
-    fields.put(MONTH_OF_YEAR, 1 + (remainingDays / CHRONO.DAYS_PER_MONTH));
-    fields.put(DAY_OF_MONTH, remainingDays % CHRONO.DAYS_PER_MONTH);
+    fields.put(DAY_OF_YEAR, dayOfYear);
+    fields.put(MONTH_OF_YEAR, monthOfYear);
+    fields.put(DAY_OF_MONTH, dayOfMonth);
     return fields;
   }
 }
