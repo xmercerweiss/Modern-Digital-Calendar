@@ -1,6 +1,9 @@
 package net.xmercerweiss.mdc.tests;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.time.temporal.TemporalQueries;
+import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,11 +36,30 @@ public class ModernDigitalDateUsageTest
   );
 
   @Test
+  void Query_ForChronology_WithTemporalQuery()
+  {
+    ModernDigitalDate date = ModernDigitalDate.now();
+    assertEquals(
+      date.getChronology(),
+      date.query(TemporalQueries.chronology())
+    );
+  }
+
+  @Test
+  void Query_ForLocalDate_WithTemporalQuery()
+  {
+    ModernDigitalDate date = ModernDigitalDate.now();
+    assertEquals(
+      LocalDate.from(date),
+      date.query(TemporalQueries.localDate())
+    );
+  }
+
+  @Test
   void DateToString_WithValidDates_ProducesExpected()
   {
+    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("-  MMMM+d+yyyyG  -");
     for (ModernDigitalDate date : VALID_DATES)
-    {
-      System.out.println(date);
-    }
+      System.out.println(date.format(fmt));
   }
 }

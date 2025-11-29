@@ -20,6 +20,29 @@ public class ModernDigitalDate
 
   private static final String DISPLAY_FMT = "%(d-%02d-%02d MDC";
 
+  private static final char IGNORE_CHAR = '\'';
+  private static final char TERM_CHAR = ')';
+  private static final String TEXT_ARG_NAME = "Text";
+  private static final String VALUE_ARG_NAME = "Value";
+  private static final String VALUE_FMT = "%0%sd";
+
+  /*
+  Text(Era,SHORT)
+  Value(Year)
+  Value(YearOfEra)
+  Value(DayOfYear)
+  Value(MonthOfYear)
+  Value(DayOfMonth)
+  Value(ModifiedJulianDay)
+  Value(QuarterOfYear)
+  Localized(WeekBasedYear)
+  Localized(WeekOfWeekBasedYear,1)
+  Localized(WeekOfMonth,1)
+  Text(DayOfWeek,SHORT)
+  Localized(DayOfWeek,1)
+  Value(AlignedWeekOfMonth)
+   */
+
   // Static Methods
   public static ModernDigitalDate of(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
@@ -57,6 +80,20 @@ public class ModernDigitalDate
       return ModernDigitalDate.ofEpochDay(date.toEpochDay());
     else
       throw CHRONO.noTimeOperationsError();
+  }
+
+  private static UnsupportedOperationException invalidQueryError()
+  {
+    return new UnsupportedOperationException(
+      "ModernDigitalDate given invalid TemporalQuery; only pass date-only queries from TemporalQueries"
+    );
+  }
+
+  private static IllegalArgumentException invalidFormatError()
+  {
+    return new IllegalArgumentException(
+      "ModernDigitalDate attempted to parse invalid date format"
+    );
   }
 
   // Instance Fields
@@ -220,7 +257,8 @@ public class ModernDigitalDate
   @Override
   public int lengthOfYear()
   {
-    return isLeapYear() ? 366 : 365;
+    return isLeapYear() ?
+      CHRONO.DAYS_PER_LEAP_YEAR : CHRONO.DAYS_PER_COMMON_YEAR;
   }
 
   @Override
@@ -274,19 +312,41 @@ public class ModernDigitalDate
   @Override
   public String format(DateTimeFormatter formatter)
   {
-    return ChronoLocalDate.super.format(formatter);
+    try
+    {
+      String fmt = formatter.toString();
+      return formatterStringToOutput(fmt);
+    }
+    catch (Exception e)
+    {
+      throw invalidFormatError();
+    }
   }
 
   @Override
   public <R> R query(TemporalQuery<R> query)
   {
-    return query.queryFrom(this);
+    try
+    {
+      if (query == TemporalQueries.chronology())
+        return (R) CHRONO;
+      else if (query == TemporalQueries.localDate())
+        return (R) LocalDate.ofEpochDay(this.toEpochDay());
+      else
+        throw invalidQueryError();
+    }
+    catch (ClassCastException e)
+    {
+      throw invalidQueryError();
+    }
   }
 
   @Override
   public int compareTo(ChronoLocalDate that)
   {
-    if (this.toEpochDay() == that.toEpochDay())
+    if (that == null)
+      throw CHRONO.invalidDateError();
+    else if (this.toEpochDay() == that.toEpochDay())
       return CHRONO == that.getChronology() ? 0 : -1;
     else
       return (int) (this.toEpochDay() - that.toEpochDay());
@@ -344,6 +404,11 @@ public class ModernDigitalDate
     return get(DAY_OF_WEEK);
   }
 
+  public String format(String pattern)
+  {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+    return format(formatter);
+  }
 
   // Private Methods
   private void validateFields(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
@@ -378,5 +443,62 @@ public class ModernDigitalDate
     fields.put(MONTH_OF_YEAR, monthOfYear);
     fields.put(DAY_OF_MONTH, dayOfMonth);
     return fields;
+  }
+
+  private String formatterStringToOutput(String fmt)
+  {
+    StringBuilder out = new StringBuilder();
+    StringBuilder arg = new StringBuilder();
+    boolean ignore = false;
+    for (char c : fmt.toCharArray())
+    {
+      if (c == IGNORE_CHAR)
+        ignore = !ignore;
+      else if (ignore)
+        out.append(c);
+      else
+      {
+        arg.append(c);
+        if (c == TERM_CHAR)
+        {
+          String rendered = renderFormatArg(arg.toString());
+          arg.delete(0, arg.length());
+          out.append(rendered);
+        }
+      }
+    }
+    return out.toString();
+  }
+
+  private String renderFormatArg(String arg)
+  {
+    if (arg.startsWith(TEXT_ARG_NAME))
+    {
+      String[] settings = arg.substring(
+        TEXT_ARG_NAME.length() + 1,
+        arg.length() - 1
+      ).split(",");
+      return renderTextArg(settings);
+    }
+    else if (arg.startsWith(VALUE_ARG_NAME))
+    {
+      String[] settings = arg.substring(
+        VALUE_ARG_NAME.length() + 1,
+        arg.length() - 1
+      ).split(",");
+      return renderValueArg(settings);
+    }
+    else
+      return arg;
+  }
+
+  private String renderTextArg(String... settings)
+  {
+    return String.join(":", settings);
+  }
+
+  private String renderValueArg(String... settings)
+  {
+    return String.join(";", settings);
   }
 }
