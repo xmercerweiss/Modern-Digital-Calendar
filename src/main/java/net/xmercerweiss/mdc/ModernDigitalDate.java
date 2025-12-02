@@ -3,6 +3,7 @@ package net.xmercerweiss.mdc;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.function.Supplier;
 import java.time.*;
 import java.time.chrono.*;
 import java.time.temporal.*;
@@ -10,6 +11,8 @@ import java.time.format.DateTimeFormatter;
 
 import static java.util.Map.entry;
 import static java.time.temporal.ChronoField.*;
+
+import static net.xmercerweiss.mdc.CustomField.*;
 
 
 public class ModernDigitalDate
@@ -23,25 +26,25 @@ public class ModernDigitalDate
   private static final char IGNORE_CHAR = '\'';
   private static final char TERM_CHAR = ')';
   private static final String TEXT_ARG_NAME = "Text";
-  private static final String VALUE_ARG_NAME = "Value";
+  private static final String LOCALIZED_TEXT_ARG_NAME = "Localized";
+  private static final String VALUE_ARG_NAME = "ReducedValue";
+  private static final String REDUCED_VALUE_ARG_NAME = "Value";
+
   private static final String VALUE_FMT = "%0%sd";
 
-  /*
-  Text(Era,SHORT)
-  Value(Year)
-  Value(YearOfEra)
-  Value(DayOfYear)
-  Value(MonthOfYear)
-  Value(DayOfMonth)
-  Value(ModifiedJulianDay)
-  Value(QuarterOfYear)
-  Localized(WeekBasedYear)
-  Localized(WeekOfWeekBasedYear,1)
-  Localized(WeekOfMonth,1)
-  Text(DayOfWeek,SHORT)
-  Localized(DayOfWeek,1)
-  Value(AlignedWeekOfMonth)
-   */
+  private static final Map<String,TemporalField> FMT_VALUE_NAME_TO_FIELD = Map.ofEntries(
+    entry("Era", ERA),
+    entry("Year", YEAR),
+    entry("YearOfEra", YEAR_OF_ERA),
+    entry("DayOfYear", DAY_OF_YEAR),
+    entry("MonthOfYear", MONTH_OF_YEAR),
+    entry("DayOfMonth", DAY_OF_MONTH),
+    entry("ModifiedJulianDay", MODIFIED_JULIAN_DAY),
+    entry("QuarterOfYear", QUARTER_OF_YEAR),
+    entry("WeekOfMonth", ALIGNED_WEEK_OF_MONTH),
+    entry("AlignedWeekOfMonth", ALIGNED_WEEK_OF_MONTH),
+    entry("DayOfWeek", DAY_OF_WEEK)
+  );
 
   // Static Methods
   public static ModernDigitalDate of(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)

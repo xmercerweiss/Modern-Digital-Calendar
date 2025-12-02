@@ -37,16 +37,7 @@ public class ModernDigitalChronology extends AbstractChronology
   public static final int DAYS_PER_COMMON_YEAR = NON_LEAP_DAYS_PER_YEAR + 1;
   public static final int DAYS_PER_LEAP_YEAR = NON_LEAP_DAYS_PER_YEAR + 2;
 
-  // Due to the standard rules for leap year calculation, the number
-  // of days in a number of years must be calculated as a number of
-  // 400-, 100-, and 4-year cycles. This will ensure that conversions
-  // between years and days will remain accurate
-  public static final long DAYS_PER_400_YEARS =
-    (97 * DAYS_PER_LEAP_YEAR) + (303 * DAYS_PER_COMMON_YEAR);
-  public static final long DAYS_PER_100_YEARS =
-    (24 * DAYS_PER_LEAP_YEAR) + (76 * DAYS_PER_COMMON_YEAR);
-  public static final long DAYS_PER_4_YEARS =
-    DAYS_PER_LEAP_YEAR + (3 * DAYS_PER_COMMON_YEAR);
+  public static final int MJD_EPOCH_DIFF_IN_DAYS = 40587;
 
   private static final String ID = "ModernDigital";
   private static final String DISPLAY_NAME = "Modern Digital Calendar";
