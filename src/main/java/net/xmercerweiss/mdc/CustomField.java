@@ -3,7 +3,12 @@ package net.xmercerweiss.mdc;
 import java.time.temporal.*;
 
 
-public enum CustomField
+/**
+ * Custom {@link java.time.temporal.TemporalField} values for internal use
+ * @author Xavier Mercerweiss
+ * @version v1.0 2025-12-02
+ */
+enum CustomField
   implements TemporalField
 {
   // Enumerated Constants

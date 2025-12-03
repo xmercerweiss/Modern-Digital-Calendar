@@ -4,7 +4,12 @@ import java.time.Duration;
 import java.time.temporal.*;
 
 
-public enum CustomUnit
+/**
+ * Custom {@link java.time.temporal.TemporalUnit} values for internal use
+ * @author Xavier Mercerweiss
+ * @version v1.0 2025-12-02
+ */
+enum CustomUnit
   implements TemporalUnit
 {
   // Enumerated Constants
