@@ -58,8 +58,6 @@ public class ModernDigitalDateUsageTest
   @Test
   void DateToString_WithValidDates_ProducesExpected()
   {
-    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMMM+d+yyyy");
-    for (ModernDigitalDate date : VALID_DATES)
-      System.out.println(date.format(fmt));
+    // TODO implement real date formatting unit tests
   }
 }

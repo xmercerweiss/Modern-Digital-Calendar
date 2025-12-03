@@ -1,8 +1,12 @@
 package net.xmercerweiss.mdc;
 
 import java.io.Serializable;
+import java.time.format.TextStyle;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.HashMap;
+import java.util.function.BiFunction;
 import java.time.*;
 import java.time.chrono.*;
 import java.time.temporal.*;
@@ -27,18 +31,13 @@ public class ModernDigitalDate
   // Class Constants
   private static final ModernDigitalChronology CHRONO = ModernDigitalChronology.INSTANCE;
 
-  private static final String DISPLAY_FMT = "yyyy-MM-dd MDC";
-
   private static final char IGNORE_CHAR = '\'';
   private static final char TERM_CHAR = ')';
-  private static final String TEXT_ARG_NAME = "Text";
-  private static final String LOCALIZED_TEXT_ARG_NAME = "Localized";
-  private static final String VALUE_ARG_NAME = "ReducedValue";
-  private static final String REDUCED_VALUE_ARG_NAME = "Value";
 
-  private static final String VALUE_FMT = "%0%sd";
+  private static final String VALUE_META_FMT = "%%0%sd";
+  private static final String DISPLAY_FMT = "yGGGGG-MM-dd";
 
-  private static final Map<String,TemporalField> FMT_VALUE_NAME_TO_FIELD = Map.ofEntries(
+  private static final Map<String,TemporalField> FIELD_NAME_TO_FIELD = Map.ofEntries(
     entry("Era", ERA),
     entry("Year", YEAR),
     entry("YearOfEra", YEAR_OF_ERA),
@@ -50,6 +49,40 @@ public class ModernDigitalDate
     entry("WeekOfMonth", ALIGNED_WEEK_OF_MONTH),
     entry("AlignedWeekOfMonth", ALIGNED_WEEK_OF_MONTH),
     entry("DayOfWeek", DAY_OF_WEEK)
+  );
+
+  private static final Map<Long,String> MONTH_VALUE_TO_FULL_NAME = Map.ofEntries(
+    entry(0L, "Leap"),
+    entry(1L, "Unitary"),
+    entry(2L, "Duotary"),
+    entry(3L, "Tertiary"),
+    entry(4L, "Quartuary"),
+    entry(5L, "Pentuary"),
+    entry(6L, "Hextuary"),
+    entry(7L, "September"),
+    entry(8L, "October"),
+    entry(9L, "November"),
+    entry(10L, "December"),
+    entry(11L, "Hendecember"),
+    entry(12L, "Dodecember"),
+    entry(13L, "Tredecember")
+  );
+
+  private static final Map<Long,String> MONTH_VALUE_TO_SHORT_NAME = Map.ofEntries(
+    entry(0L, "Leap"),
+    entry(1L, "Uni"),
+    entry(2L, "Duo"),
+    entry(3L, "Ter"),
+    entry(4L, "Qua"),
+    entry(5L, "Pen"),
+    entry(6L, "Hex"),
+    entry(7L, "Sep"),
+    entry(8L, "Oct"),
+    entry(9L, "Nov"),
+    entry(10L, "Dec"),
+    entry(11L, "Hen"),
+    entry(12L, "Dod"),
+    entry(13L, "Tred")
   );
 
   // Error Methods
@@ -149,6 +182,15 @@ public class ModernDigitalDate
   private final Era ERA_ENUM;
   private final Map<TemporalField,Long> FIELDS;
 
+  private final Map<String, BiFunction<TemporalField,String[],String>>
+    ARG_ID_TO_RENDERER = Map.ofEntries(
+      entry("Text", this::renderFormattedText),
+      entry("Localized", this::renderFormattedText),
+      entry("Value", this::renderFormattedValue),
+      entry("ReducedValue", this::renderFormattedValue)
+    );
+
+
   // Constructors
   private ModernDigitalDate(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
@@ -229,9 +271,7 @@ public class ModernDigitalDate
   @Override
   public boolean isSupported(TemporalField field)
   {
-    return FIELDS.containsKey(
-      CHRONO.toInternalField(field)
-    );
+    return CHRONO.isSupported(field);
   }
 
   /**
@@ -436,7 +476,15 @@ public class ModernDigitalDate
     return null;
   }
 
-  // TODO implement, test, and document
+  /**
+   * Formats this date using the pattern of the given formatter
+   * <br><br>
+   * Note that calling {@code formatter.format(date)} will typically result in an error,
+   * as this method <em>does not</em> actually utilize the given formatter, rather it simply
+   * extracts its pattern and produces its output using its own implementation
+   * @param formatter A {@link java.time.format.DateTimeFormatter}, not null
+   * @return A {@code String} representation of this date matching the given formatter
+   */
   @Override
   public String format(DateTimeFormatter formatter)
   {
@@ -447,6 +495,7 @@ public class ModernDigitalDate
     }
     catch (Exception e)
     {
+      e.printStackTrace();
       throw invalidFormatError();
     }
   }
@@ -568,7 +617,7 @@ public class ModernDigitalDate
   /**
    * Gets the numeric value for the day of the week of this {@code Date}
    * <br><br>
-   * Following the conventions of ISO 8601, Monday has a value of 1 and Sunday has a value of 7.
+   * Following the conventions of ISO 8601, Monday has a value of 1 and Sunday has a value of 7
    * Leap days belong to no week and therefore have a value of 0
    * @return A signed 32-bit integer within [0, 7]
    */
@@ -577,7 +626,24 @@ public class ModernDigitalDate
     return get(DAY_OF_WEEK);
   }
 
-  // TODO implement, test, and document
+  /**
+   * Gets the numeric value for the quarter of the year of this {@code Date}
+   * @return A signed 32-bit integer within [0, 4], 0 for leap days, which belong to no quarter
+   */
+  public int getQuarter()
+  {
+    int weekOfYear = getWeekOfYear();
+    if (weekOfYear == 0)
+      return 0;
+    else
+      return ((weekOfYear - 1) / CHRONO.WEEKS_PER_QUARTER) + 1;
+  }
+
+  /**
+   * Formats this date using the given pattern
+   * @param pattern A formatting pattern as defined by {@link java.time.format.DateTimeFormatter}
+   * @return A {@code String} representation of this date matching the given pattern
+   */
   public String format(String pattern)
   {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
@@ -625,7 +691,6 @@ public class ModernDigitalDate
     StringBuilder arg = new StringBuilder();
     boolean ignore = false;
     for (char c : fmt.toCharArray())
-    {
       if (c == IGNORE_CHAR)
         ignore = !ignore;
       else if (ignore)
@@ -640,39 +705,87 @@ public class ModernDigitalDate
           out.append(rendered);
         }
       }
-    }
     return out.toString();
   }
 
   private String renderFormatArg(String arg)
   {
-    if (arg.startsWith(TEXT_ARG_NAME))
-    {
-      String[] settings = arg.substring(
-        TEXT_ARG_NAME.length() + 1,
-        arg.length() - 1
-      ).split(",");
-      return renderTextArg(settings);
+    for (
+      Entry<String,BiFunction<TemporalField,String[],String>> pair :
+      ARG_ID_TO_RENDERER.entrySet()
+    ) {
+      String argId = pair.getKey();
+      BiFunction<TemporalField,String[],String> renderer = pair.getValue();
+      if (arg.startsWith(argId))
+      {
+        String[] settings = arg.substring(
+          argId.length() + 1,
+          arg.length() - 1
+        ).split(",");
+        TemporalField field = FIELD_NAME_TO_FIELD.get(settings[0]);
+        if (field == null)
+          throw invalidFormatError();
+        settings = Arrays.copyOfRange(settings, 1, settings.length);
+        return renderer.apply(field, settings);
+      }
     }
-    else if (arg.startsWith(VALUE_ARG_NAME))
+    throw invalidFormatError();
+  }
+
+  private String renderFormattedText(TemporalField field, String... settings)
+  {
+    long fieldValue = getFormatFieldValue(field);
+    TextStyle style = TextStyle.FULL;
+    try
     {
-      String[] settings = arg.substring(
-        VALUE_ARG_NAME.length() + 1,
-        arg.length() - 1
-      ).split(",");
-      return renderValueArg(settings);
+      style = TextStyle.valueOf(settings[0]);
     }
+    catch (Exception _) {}
+    return switch (field)
+    {
+      case MONTH_OF_YEAR -> getStyledMonthName(fieldValue, style);
+      case ERA -> ERA_ENUM.getDisplayName(style, null);
+      // TODO finish text value rendering implementation
+      default -> throw invalidFormatError();
+    };
+  }
+
+  private String renderFormattedValue(TemporalField field, String... settings)
+  {
+    long fieldValue = getFormatFieldValue(field);
+    int fieldWidth = -1;
+    try
+    {
+      fieldWidth = Integer.parseInt(settings[0]);
+    }
+    catch (Exception _) {}
+    if (fieldWidth <= 0)
+      return String.valueOf(fieldValue);
     else
-      return arg;
+      return VALUE_META_FMT
+        .formatted(fieldWidth)
+        .formatted(fieldValue);
   }
 
-  private String renderTextArg(String... settings)
+  private long getFormatFieldValue(TemporalField field)
   {
-    return String.join(":", settings);
+    if (isSupported(field))
+      return getLong(field);
+    else return switch (field)
+    {
+      case MODIFIED_JULIAN_DAY -> toEpochDay() + CHRONO.MJD_EPOCH_OFFSET_IN_DAYS;
+      case QUARTER_OF_YEAR -> getQuarter();
+      default -> throw invalidFormatError();
+    };
   }
 
-  private String renderValueArg(String... settings)
+  private String getStyledMonthName(long value, TextStyle style)
   {
-    return String.join(";", settings);
+    return switch (style)
+    {
+      case NARROW, NARROW_STANDALONE -> MONTH_VALUE_TO_SHORT_NAME.get(value).substring(0, 1);
+      case SHORT, SHORT_STANDALONE -> MONTH_VALUE_TO_SHORT_NAME.get(value);
+      default -> MONTH_VALUE_TO_FULL_NAME.get(value);
+    };
   }
 }

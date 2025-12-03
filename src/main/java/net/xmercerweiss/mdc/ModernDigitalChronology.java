@@ -38,6 +38,7 @@ public class ModernDigitalChronology
   public static final int DAYS_PER_MONTH = DAYS_PER_WEEK * WEEKS_PER_MONTH;
   public static final int NON_LEAP_MONTHS_PER_YEAR = 13;
   public static final int WEEKS_PER_YEAR = WEEKS_PER_MONTH * NON_LEAP_MONTHS_PER_YEAR;
+  public static final int WEEKS_PER_QUARTER = WEEKS_PER_YEAR / 4;
   public static final int NON_LEAP_DAYS_PER_YEAR = NON_LEAP_MONTHS_PER_YEAR * DAYS_PER_MONTH;
   public static final int DAYS_PER_COMMON_YEAR = NON_LEAP_DAYS_PER_YEAR + 1;
   public static final int DAYS_PER_LEAP_YEAR = NON_LEAP_DAYS_PER_YEAR + 2;
