@@ -3,6 +3,7 @@ package net.xmercerweiss.mdc.tests;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.time.LocalDate;
 import java.time.DateTimeException;
 import static java.util.Map.entry;
 
@@ -197,5 +198,13 @@ public class ModernDigitalDateCreationTest
       Integer[] actual = dateToFieldsArray(date);
       assertArrayEquals(expected, actual);
     }
+  }
+
+  @Test
+  void Now_ToEpochDay_ProducesExpected()
+  {
+    long expected= LocalDate.now().toEpochDay();
+    long actual = ModernDigitalDate.now().toEpochDay();
+    assertEquals(expected, actual);
   }
 }

@@ -3,7 +3,6 @@ package net.xmercerweiss.mdc.tests;
 import java.time.LocalDate;
 import java.util.List;
 import java.time.temporal.TemporalQueries;
-import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,6 +57,6 @@ public class ModernDigitalDateUsageTest
   @Test
   void DateToString_WithValidDates_ProducesExpected()
   {
-    // TODO implement real date formatting unit tests
+    // TODO write real formatting tests
   }
 }

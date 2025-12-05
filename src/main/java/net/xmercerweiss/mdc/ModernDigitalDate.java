@@ -35,7 +35,8 @@ public class ModernDigitalDate
   private static final char TERM_CHAR = ')';
 
   private static final String VALUE_META_FMT = "%%0%sd";
-  private static final String DISPLAY_FMT = "yGGGGG-MM-dd";
+  private static final String DISPLAY_FMT =
+    "%s G y-MM-dd".formatted(CHRONO.getId());
 
   private static final Map<String,TemporalField> FIELD_NAME_TO_FIELD = Map.ofEntries(
     entry("Era", ERA),
@@ -46,6 +47,7 @@ public class ModernDigitalDate
     entry("DayOfMonth", DAY_OF_MONTH),
     entry("ModifiedJulianDay", MODIFIED_JULIAN_DAY),
     entry("QuarterOfYear", QUARTER_OF_YEAR),
+    entry("WeekOfWeekBasedYear", ALIGNED_WEEK_OF_YEAR),
     entry("WeekOfMonth", ALIGNED_WEEK_OF_MONTH),
     entry("AlignedWeekOfMonth", ALIGNED_WEEK_OF_MONTH),
     entry("DayOfWeek", DAY_OF_WEEK)
@@ -85,7 +87,40 @@ public class ModernDigitalDate
     entry(13L, "Tred")
   );
 
+  private static final Map<Long,String> WEEKDAY_VALUE_TO_NAME = Map.ofEntries(
+    entry(0L, "None"),
+    entry(1L, "Monday"),
+    entry(2L, "Tuesday"),
+    entry(3L, "Wednesday"),
+    entry(4L, "Thursday"),
+    entry(5L, "Friday"),
+    entry(6L, "Saturday"),
+    entry(7L, "Sunday")
+  );
+
+  private static final Map<Long,String> QUARTER_VALUE_TO_FULL_NAME = Map.ofEntries(
+    entry(0L, "No quarter"),
+    entry(1L, "1st quarter"),
+    entry(2L, "2nd quarter"),
+    entry(3L, "3rd quarter"),
+    entry(4L, "4th quarter")
+  );
+
+  private static final Map<Long,String> QUARTER_VALUE_TO_SHORT_NAME = Map.ofEntries(
+    entry(0L, "Q0"),
+    entry(1L, "Q1"),
+    entry(2L, "Q2"),
+    entry(3L, "Q3"),
+    entry(4L, "Q4")
+  );
+
   // Error Methods
+  private static UnsupportedOperationException invalidAdjustmentError()
+  {
+    return new UnsupportedOperationException(
+      "ModernDigitalDates do not support the use of .with() or TemporalAdjusters"
+    );
+  }
   private static UnsupportedOperationException invalidQueryError()
   {
     return new UnsupportedOperationException(
@@ -185,7 +220,7 @@ public class ModernDigitalDate
   private final Map<String, BiFunction<TemporalField,String[],String>>
     ARG_ID_TO_RENDERER = Map.ofEntries(
       entry("Text", this::renderFormattedText),
-      entry("Localized", this::renderFormattedText),
+      entry("Localized", this::renderFormattedValue),
       entry("Value", this::renderFormattedValue),
       entry("ReducedValue", this::renderFormattedValue)
     );
@@ -196,6 +231,7 @@ public class ModernDigitalDate
   {
     validateFields(era, yearOfEra, monthOfYear, dayOfMonth);
     ERA_ENUM = yearOfEra == 0 ? ModernDigitalEra.SINCE_EPOCH : era;
+    long weekOfYear = CHRONO.ordinalWeekOfYear(monthOfYear, dayOfMonth);
     FIELDS = Map.ofEntries(
       entry(
         ERA,
@@ -215,7 +251,11 @@ public class ModernDigitalDate
       ),
       entry(
         ALIGNED_WEEK_OF_YEAR,
-        (long) CHRONO.ordinalWeekOfYear(monthOfYear, dayOfMonth)
+        weekOfYear
+      ),
+      entry(
+        ALIGNED_WEEK_OF_MONTH,
+        ((weekOfYear - 1) % CHRONO.WEEKS_PER_MONTH) + 1
       ),
       entry(
         DAY_OF_YEAR,
@@ -227,7 +267,7 @@ public class ModernDigitalDate
       ),
       entry(
         DAY_OF_WEEK,
-        (long) dayOfMonth % CHRONO.DAYS_PER_WEEK
+        (long) CHRONO.ordinalDayOfWeek(monthOfYear, dayOfMonth)
       ),
       entry(
         EPOCH_DAY,
@@ -238,28 +278,33 @@ public class ModernDigitalDate
 
   private ModernDigitalDate(long epochDay)
   {
-    HashMap<TemporalField,Long> workingFields = epochDayToFields(epochDay);
-    int prolepticYear = Math.toIntExact(workingFields.get(YEAR));
-    int monthOfYear = Math.toIntExact(workingFields.get(MONTH_OF_YEAR));
-    int dayOfMonth = Math.toIntExact(workingFields.get(DAY_OF_MONTH));
+    HashMap<TemporalField,Long> calculatedFields = epochDayToFields(epochDay);
+    int prolepticYear = Math.toIntExact(calculatedFields.get(YEAR));
+    int monthOfYear = Math.toIntExact(calculatedFields.get(MONTH_OF_YEAR));
+    int dayOfMonth = Math.toIntExact(calculatedFields.get(DAY_OF_MONTH));
+    long weekOfYear = CHRONO.ordinalWeekOfYear(monthOfYear, dayOfMonth);
     ERA_ENUM = CHRONO.eraOf(prolepticYear);
-    workingFields.put(
+    calculatedFields.put(
       ERA,
       ERA_ENUM.getLong(ERA)
     );
-    workingFields.put(
+    calculatedFields.put(
       YEAR_OF_ERA,
       (long) CHRONO.prolepticToEraYear(prolepticYear)
     );
-    workingFields.put(
+    calculatedFields.put(
       ALIGNED_WEEK_OF_YEAR,
-      (long) CHRONO.ordinalWeekOfYear(monthOfYear, dayOfMonth)
+      weekOfYear
     );
-    workingFields.put(
+    calculatedFields.put(
+      ALIGNED_WEEK_OF_MONTH,
+      ((weekOfYear - 1) % CHRONO.WEEKS_PER_MONTH) + 1
+    );
+    calculatedFields.put(
       DAY_OF_WEEK,
-      (long) dayOfMonth % CHRONO.DAYS_PER_WEEK
+      (long) CHRONO.ordinalDayOfWeek(monthOfYear, dayOfMonth)
     );
-    FIELDS = Map.copyOf(workingFields);
+    FIELDS = Map.copyOf(calculatedFields);
   }
 
   // Override Methods
@@ -429,13 +474,6 @@ public class ModernDigitalDate
 
   // TODO implement, test, and document
   @Override
-  public ChronoLocalDate with(TemporalField field, long newValue)
-  {
-    return ChronoLocalDate.super.with(field, newValue);
-  }
-
-  // TODO implement, test, and document
-  @Override
   public ChronoLocalDate plus(TemporalAmount amount)
   {
     return ChronoLocalDate.super.plus(amount);
@@ -550,8 +588,28 @@ public class ModernDigitalDate
   }
 
   /**
+   * This {@code Date} does not support the use of .with() or TemporalAdjusters
+   * @throws UnsupportedOperationException Always
+   */
+  @Override
+  public ChronoLocalDate with(TemporalAdjuster adjuster)
+  {
+    throw invalidAdjustmentError();
+  }
+
+  /**
+   * This {@code Date} does not support the use of .with()
+   * @throws UnsupportedOperationException Always
+   */
+  @Override
+  public ChronoLocalDate with(TemporalField field, long newValue)
+  {
+    throw invalidAdjustmentError();
+  }
+
+  /**
    * The {@code Chronology} of this {@code Date} does not support time-based methods; see {@link net.xmercerweiss.mdc.ModernDigitalChronology}
-   * @throws UnsupportedOperationException Not implemented
+   * @throws UnsupportedOperationException Always
    */
   @Override
   public ChronoLocalDateTime<?> atTime(LocalTime localTime)
@@ -743,8 +801,10 @@ public class ModernDigitalDate
     catch (Exception _) {}
     return switch (field)
     {
-      case MONTH_OF_YEAR -> getStyledMonthName(fieldValue, style);
       case ERA -> ERA_ENUM.getDisplayName(style, null);
+      case QUARTER_OF_YEAR -> getStyledQuarterName(fieldValue, style);
+      case MONTH_OF_YEAR -> getStyledMonthName(fieldValue, style);
+      case DAY_OF_WEEK -> getStyledWeekdayName(fieldValue, style);
       // TODO finish text value rendering implementation
       default -> throw invalidFormatError();
     };
@@ -786,6 +846,27 @@ public class ModernDigitalDate
       case NARROW, NARROW_STANDALONE -> MONTH_VALUE_TO_SHORT_NAME.get(value).substring(0, 1);
       case SHORT, SHORT_STANDALONE -> MONTH_VALUE_TO_SHORT_NAME.get(value);
       default -> MONTH_VALUE_TO_FULL_NAME.get(value);
+    };
+  }
+
+  private String getStyledWeekdayName(long value, TextStyle style)
+  {
+    String fullName = WEEKDAY_VALUE_TO_NAME.get(value);
+    return switch (style)
+    {
+      case FULL, FULL_STANDALONE -> fullName;
+      case SHORT, SHORT_STANDALONE -> fullName.substring(0, 3);
+      case NARROW, NARROW_STANDALONE -> fullName.substring(0, 1);
+    };
+  }
+
+  private String getStyledQuarterName(long value, TextStyle style)
+  {
+    return switch (style)
+    {
+      case FULL, FULL_STANDALONE -> QUARTER_VALUE_TO_FULL_NAME.get(value);
+      case SHORT, SHORT_STANDALONE -> QUARTER_VALUE_TO_SHORT_NAME.get(value);
+      case NARROW, NARROW_STANDALONE -> String.valueOf(value);
     };
   }
 }

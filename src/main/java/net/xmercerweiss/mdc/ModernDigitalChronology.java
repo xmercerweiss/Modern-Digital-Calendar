@@ -57,6 +57,7 @@ public class ModernDigitalChronology
     entry(YEAR, YEAR),
     entry(MONTH_OF_YEAR, MONTH_OF_YEAR),
     entry(ALIGNED_WEEK_OF_YEAR, ALIGNED_WEEK_OF_YEAR),
+    entry(ALIGNED_WEEK_OF_MONTH, ALIGNED_WEEK_OF_MONTH),
     entry(DAY_OF_YEAR, DAY_OF_YEAR),
     entry(DAY_OF_MONTH, DAY_OF_MONTH),
     entry(DAY_OF_WEEK, DAY_OF_WEEK),
@@ -189,7 +190,7 @@ public class ModernDigitalChronology
    * ordinal day of the given year and era
    * @param era A {@link net.xmercerweiss.mdc.ModernDigitalEra}, not null
    * @param yearOfEra The year of the era, must be >= 0
-   * @param dayOfYear The ordinal day of the year
+   * @param dayOfYear The day of the year, within [1, 366]
    * @return A new {@link net.xmercerweiss.mdc.ModernDigitalDate}
    * @throws DateTimeException If given an invalid date
    */
@@ -202,7 +203,7 @@ public class ModernDigitalChronology
   /**
    * Equivalent to {@link net.xmercerweiss.mdc.ModernDigitalDate#ofYearDay(int, int)}
    * @param prolepticYear The number of years before (< 0) or since (>= 0) 1970 ISO
-   * @param dayOfYear The ordinal day of the year
+   * @param dayOfYear The day of the year, within [1, 366]
    * @return A new {@link net.xmercerweiss.mdc.ModernDigitalDate}
    * @throws DateTimeException If given an invalid date
    */
@@ -318,7 +319,7 @@ public class ModernDigitalChronology
    * Equivalent to {@link java.time.Period#of(int, int, int)}
    * @param years A number of years, may be negative
    * @param months A number of months, may be negative
-   * @param days A number of days , may be negative
+   * @param days A number of days, may be negative
    * @return A new {@link java.time.Period}
    */
   @Override
@@ -499,6 +500,36 @@ public class ModernDigitalChronology
   }
 
   /**
+   * Calculates the ordinal (1st, 2nd, 3rd...) value of the weekday to which a given
+   * day of a given month belongs
+   * @param monthOfYear The month of the year, 0 for leap days
+   * @param dayOfMonth The day of the month, within [1, 28]
+   * @return A signed 32-bit integer within [0, 7], 0 for leap days as they belong to no weekday
+   * @throws DateTimeException If the given month or day is invalid
+   */
+  public int ordinalDayOfWeek(int monthOfYear, int dayOfMonth)
+  {
+    int dayOfYear = ordinalDayOfYear(monthOfYear, dayOfMonth);
+    return ordinalDayOfWeek(dayOfYear);
+  }
+
+  /**
+   * Calculates the ordinal (1st, 2nd, 3rd...) value of the weekday to which a given
+   * day belongs
+   * @param dayOfYear The day of the year, within [1, 366]
+   * @return A signed 32-bit integer within [0, 7], 0 for leap days as they belong to no weekday
+   * @throws DateTimeException If the given day is invalid
+   */
+  public int ordinalDayOfWeek(int dayOfYear)
+  {
+    ValueRange dayOfYearRange = range(DAY_OF_YEAR);
+    if (!dayOfYearRange.isValidValue(dayOfYear))
+      throw invalidDateError();
+    else return dayOfYear > NON_LEAP_DAYS_PER_YEAR ?
+      0 : ((dayOfYear - 1) % DAYS_PER_WEEK) + 1;
+  }
+
+  /**
    * Calculates the ordinal (1st, 2nd, 3rd...) week of the year from a month and day
    * @param monthOfYear The month of the year, 0 for leap days
    * @param dayOfMonth The day of the month, within [1, 28]
@@ -514,7 +545,7 @@ public class ModernDigitalChronology
 
   /**
    * Calculates the ordinal (1st, 2nd, 3rd...) week of the year from a day of the year
-   * @param dayOfYear The day of the year, within [0, 366]
+   * @param dayOfYear The day of the year, within [1, 366]
    * @return A signed 32-bit integer within [0, 52], 0 for leap days as they belong to no week
    * @throws DateTimeException If the given day is invalid
    */
