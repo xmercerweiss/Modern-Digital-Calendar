@@ -36,10 +36,10 @@ public class ModernDigitalChronology
   public static final int DAYS_PER_WEEK = 7;
   public static final int WEEKS_PER_MONTH = 4;
   public static final int DAYS_PER_MONTH = DAYS_PER_WEEK * WEEKS_PER_MONTH;
-  public static final int NON_LEAP_MONTHS_PER_YEAR = 13;
-  public static final int WEEKS_PER_YEAR = WEEKS_PER_MONTH * NON_LEAP_MONTHS_PER_YEAR;
+  public static final int MONTHS_PER_YEAR = 13;
+  public static final int WEEKS_PER_YEAR = WEEKS_PER_MONTH * MONTHS_PER_YEAR;
   public static final int WEEKS_PER_QUARTER = WEEKS_PER_YEAR / 4;
-  public static final int NON_LEAP_DAYS_PER_YEAR = NON_LEAP_MONTHS_PER_YEAR * DAYS_PER_MONTH;
+  public static final int NON_LEAP_DAYS_PER_YEAR = MONTHS_PER_YEAR * DAYS_PER_MONTH;
   public static final int DAYS_PER_COMMON_YEAR = NON_LEAP_DAYS_PER_YEAR + 1;
   public static final int DAYS_PER_LEAP_YEAR = NON_LEAP_DAYS_PER_YEAR + 2;
 
@@ -87,6 +87,14 @@ public class ModernDigitalChronology
     );
   }
 
+  static UnsupportedTemporalTypeException invalidUnitError()
+  {
+    return new UnsupportedTemporalTypeException(
+
+      "ModernDigitalChronology given invalid TemporalUnit; is unit supported by chronology?"
+    );
+  }
+
   static UnsupportedTemporalTypeException invalidFieldError()
   {
     return new UnsupportedTemporalTypeException(
@@ -99,6 +107,20 @@ public class ModernDigitalChronology
   {
     return new DateTimeException(
       "ModernDigitalChronology attempted to create a date with invalid values in one or more fields"
+    );
+  }
+
+  static DateTimeException nullDateError()
+  {
+    return new DateTimeException(
+      "ModernDigitalChronology given null in place of ModernDigitalDate object"
+    );
+  }
+
+  static NullPointerException nullPeriodError()
+  {
+    return new NullPointerException(
+      "ModernDigitalChronology attempted to normalize a null ChronoPeriod"
     );
   }
 
@@ -434,7 +456,7 @@ public class ModernDigitalChronology
         case ERA -> ValueRange.of(0, 1);
         case YEAR_OF_ERA -> ValueRange.of(0, Integer.MAX_VALUE);
         case YEAR -> ValueRange.of(Integer.MIN_VALUE, Integer.MAX_VALUE);
-        case MONTH_OF_YEAR -> ValueRange.of(0, NON_LEAP_MONTHS_PER_YEAR);
+        case MONTH_OF_YEAR -> ValueRange.of(0, MONTHS_PER_YEAR);
         // Leap days belong to "month 0" of year
         case ALIGNED_WEEK_OF_YEAR -> ValueRange.of(0, WEEKS_PER_YEAR);
         // Leap days belong to "week 0" of year
@@ -570,6 +592,37 @@ public class ModernDigitalChronology
     return Math.abs(prolepticYear);
   }
 
+  /**
+   * Returns a copy of this {@link java.time.chrono.ChronoPeriod} with each unit normalized
+   * to the values used within this {@code Chronology}
+   * <br><br>
+   * Years are assumed to be 365 day long regardless of how many leap days would occur over
+   * a number of years. 13 months will be normalized into a year, and 28 days into a month
+   * <br><br>
+   * For instance, a period of "15 months and 42 days" would be normalized as
+   * "1 year, 3 months, and 14 days." Negative values are valid and will be counted;
+   * "-1 year and 14 months" would be normalized into "1 month"
+   * @param period A {@link java.time.chrono.ChronoPeriod}, may hold negative units, not null
+   * @return A new instance of a normalized {@link java.time.chrono.ChronoPeriod}
+   */
+  public ChronoPeriod normalizePeriod(ChronoPeriod period)
+  {
+    if (period == null)
+      throw nullPeriodError();
+    long days = 0;
+    for (TemporalUnit unit : period.getUnits())
+      days += unitValueToDays(unit, period.get(unit));
+    int years = (int) (days / DAYS_PER_COMMON_YEAR);
+    days = days % DAYS_PER_COMMON_YEAR;
+    int months = (int) (days / DAYS_PER_MONTH);
+    int remainingDays = (int) days % DAYS_PER_MONTH;
+    return Period.of(
+      years,
+      months,
+      remainingDays
+    );
+  }
+
   // Package Private Methods
   TemporalField toInternalField(TemporalField field)
   {
@@ -584,8 +637,19 @@ public class ModernDigitalChronology
 
     TemporalField internal = UNIT_TO_INTERNAL_FIELD.get(unit);
     if (internal == null)
-      throw invalidFieldError();
+      throw invalidUnitError();
     else return internal;
   }
 
+  // Private Methods
+  private long unitValueToDays(TemporalUnit unit, long value)
+  {
+    return switch (unit)
+    {
+      case YEARS -> DAYS_PER_COMMON_YEAR * value;
+      case MONTHS -> DAYS_PER_MONTH * value;
+      case DAYS -> value;
+      default -> throw invalidUnitError();
+    };
+  }
 }

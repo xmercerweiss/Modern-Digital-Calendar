@@ -138,4 +138,14 @@ public class ModernDigitalDateUsageTest
       assertEquals(expected, actual);
     }
   }
+
+  @Test
+  void Until_WidthValidDates_ProducesExpected()
+  {
+    var a = ModernDigitalDate.of(2, 1, 7);
+    var b = ModernDigitalDate.of(1, 1, 1);
+    System.out.println(
+      a.until(b)
+    );
+  }
 }

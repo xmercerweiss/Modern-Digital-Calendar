@@ -142,6 +142,13 @@ public class ModernDigitalDate
     );
   }
 
+  private static IllegalArgumentException invalidTemporalError()
+  {
+    return new IllegalArgumentException(
+      "ModernDigitalDate passed non-ChronoLocalDate temporal object; all temporal objects must be dates"
+    );
+  }
+
   // Static Methods
   /**
    * Creates a new {@code ModernDigitalDate} instance representing the specified date
@@ -509,16 +516,43 @@ public class ModernDigitalDate
 
   // TODO implement, test, and document
   @Override
-  public long until(Temporal endExclusive, TemporalUnit unit)
+  public long until(Temporal temporal, TemporalUnit unit)
   {
-    return 0;
+    if (temporal instanceof ChronoLocalDate date)
+    {
+      return 0;
+    }
+    else
+      throw invalidTemporalError();
   }
 
   // TODO implement, test, and document
   @Override
-  public ChronoPeriod until(ChronoLocalDate endDateExclusive)
+  public ChronoPeriod until(ChronoLocalDate date)
   {
-    return null;
+    ModernDigitalDate that = date instanceof ModernDigitalDate ?
+      (ModernDigitalDate) date : ModernDigitalDate.ofEpochDay(date.toEpochDay());
+    ModernDigitalDate start = this.isBefore(that) ? this : that;
+    ModernDigitalDate end = start == this ? that : this;
+    int signum = start == this ? 1 : -1;
+    Period correction = Period.ZERO;
+    if (start.isLeapDay())
+    {
+      // Set start to the last non-leap day of the year
+      // and store the difference to be subtracted later
+      correction = correction.minusDays(start.getDayOfMonth());
+      start = ModernDigitalDate.of(start.getYear(), 13, 28);
+    }
+    if (end.isLeapDay())
+    {
+      // Set end to the last non-leap day of the year
+      // and store the difference to be added later
+      correction = correction.plusDays(end.getDayOfMonth());
+      end = ModernDigitalDate.of(end.getYear(), 13, 28);
+    }
+    return calculatePeriodBetween(start, end)
+      .plus(correction) // Correct for leap days if necessary, see above
+      .multipliedBy(signum); // if this date comes after the given date, invert the period
   }
 
   /**
@@ -577,7 +611,7 @@ public class ModernDigitalDate
   public int compareTo(ChronoLocalDate that)
   {
     if (that == null)
-      throw CHRONO.invalidDateError();
+      throw CHRONO.nullDateError();
     else if (this.toEpochDay() == that.toEpochDay())
       return CHRONO == that.getChronology() ? 0 : -1;
     else
@@ -624,6 +658,14 @@ public class ModernDigitalDate
   }
 
   // Public Methods
+  /**
+   * @return {@code true} if this date is a leap day
+   */
+  public boolean isLeapDay()
+  {
+    return getLong(MONTH_OF_YEAR) == 0;
+  }
+
   /**
    * Gets the year of the era of this {@code Date}
    * @return A signed 32-bit integer within [0, infinity)
@@ -749,6 +791,25 @@ public class ModernDigitalDate
     return fields;
   }
 
+  private Period calculatePeriodBetween(ModernDigitalDate start, ModernDigitalDate end)
+  {
+    int totalMonths = CHRONO.MONTHS_PER_YEAR * (end.getYear() - start.getYear());
+    totalMonths += end.getMonth() - start.getMonth();
+    int days = end.getDayOfMonth() - start.getDayOfMonth();
+    if (days < 0)
+    {
+      totalMonths -= 1;
+      days += CHRONO.DAYS_PER_MONTH;
+      if (end.getMonth() == 1)
+        days += CHRONO.isLeapYear(end.getYear() - 1) ? 2 : 1;
+    }
+    return Period.of(
+      totalMonths / CHRONO.MONTHS_PER_YEAR,
+      totalMonths % CHRONO.MONTHS_PER_YEAR,
+      days
+    );
+  }
+
   private String formatterStringToOutput(String fmt)
   {
     StringBuilder out = new StringBuilder();
@@ -821,7 +882,6 @@ public class ModernDigitalDate
       case QUARTER_OF_YEAR -> getStyledQuarterName(fieldValue, style);
       case MONTH_OF_YEAR -> getStyledMonthName(fieldValue, style);
       case DAY_OF_WEEK -> getStyledWeekdayName(fieldValue, style);
-      // TODO finish text value rendering implementation
       default -> throw invalidFormatError();
     };
   }
