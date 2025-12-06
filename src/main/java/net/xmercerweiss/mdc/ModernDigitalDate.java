@@ -3,6 +3,7 @@ package net.xmercerweiss.mdc;
 import java.io.Serializable;
 import java.time.format.TextStyle;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.HashMap;
@@ -31,12 +32,14 @@ public class ModernDigitalDate
   // Class Constants
   private static final ModernDigitalChronology CHRONO = ModernDigitalChronology.INSTANCE;
 
-  private static final char IGNORE_CHAR = '\'';
+  private static final char TOGGLE_NON_FMT_CHAR = '\'';
   private static final char TERM_CHAR = ')';
+  private static final char START_IGNORE_CHAR = '[';
+  private static final char STOP_IGNORE_CHAR = ']';
 
   private static final String VALUE_META_FMT = "%%0%sd";
   private static final String DISPLAY_FMT =
-    "%s G y-MM-dd".formatted(CHRONO.getId());
+    "'%s' G y-MM-dd".formatted(CHRONO.getId());
 
   private static final Map<String,TemporalField> FIELD_NAME_TO_FIELD = Map.ofEntries(
     entry("Era", ERA),
@@ -112,6 +115,10 @@ public class ModernDigitalDate
     entry(2L, "Q2"),
     entry(3L, "Q3"),
     entry(4L, "Q4")
+  );
+
+  private static final Set<String> IGNORED_ARG_IDS = Set.of(
+    "ParseCaseSensitive"
   );
 
   // Error Methods
@@ -533,7 +540,6 @@ public class ModernDigitalDate
     }
     catch (Exception e)
     {
-      e.printStackTrace();
       throw invalidFormatError();
     }
   }
@@ -747,11 +753,18 @@ public class ModernDigitalDate
   {
     StringBuilder out = new StringBuilder();
     StringBuilder arg = new StringBuilder();
+    boolean nonFormat = false;
     boolean ignore = false;
     for (char c : fmt.toCharArray())
-      if (c == IGNORE_CHAR)
-        ignore = !ignore;
+      if (c == START_IGNORE_CHAR)
+        ignore = true;
+      else if (c == STOP_IGNORE_CHAR)
+        ignore = false;
       else if (ignore)
+        continue;
+      else if (c == TOGGLE_NON_FMT_CHAR)
+        nonFormat = !nonFormat;
+      else if (nonFormat)
         out.append(c);
       else
       {
@@ -787,6 +800,9 @@ public class ModernDigitalDate
         return renderer.apply(field, settings);
       }
     }
+    for (String ignored : IGNORED_ARG_IDS)
+      if (arg.startsWith(ignored))
+        return "";
     throw invalidFormatError();
   }
 
