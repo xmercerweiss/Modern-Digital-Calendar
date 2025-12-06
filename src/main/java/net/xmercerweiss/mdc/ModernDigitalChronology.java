@@ -604,14 +604,13 @@ public class ModernDigitalChronology
    * "-1 year and 14 months" would be normalized into "1 month"
    * @param period A {@link java.time.chrono.ChronoPeriod}, may hold negative units, not null
    * @return A new instance of a normalized {@link java.time.chrono.ChronoPeriod}
+   * @throws NullPointerException If given a period of null
    */
   public ChronoPeriod normalizePeriod(ChronoPeriod period)
   {
     if (period == null)
       throw nullPeriodError();
-    long days = 0;
-    for (TemporalUnit unit : period.getUnits())
-      days += unitValueToDays(unit, period.get(unit));
+    long days = periodToDays(period);
     int years = (int) (days / DAYS_PER_COMMON_YEAR);
     days = days % DAYS_PER_COMMON_YEAR;
     int months = (int) (days / DAYS_PER_MONTH);
@@ -621,6 +620,54 @@ public class ModernDigitalChronology
       months,
       remainingDays
     );
+  }
+
+  /**
+   * <strong>WARNING:</strong> this method was hastily written and be inconsistent with other methods in this
+   * class which work with {@link java.time.chrono.ChronoPeriod ChronoPeriods}; double-check your results carefully
+   * <br><br>
+   * Approximates how many wholes of a given {@link java.time.temporal.TemporalUnit} are represented by a given {@link java.time.chrono.ChronoPeriod},
+   * not including the 366th day of leap years. All years equal 365 days and all months equal 28 days
+   * @param period A {@link java.time.chrono.ChronoPeriod}, may hold negative units, not null
+   * @param unit Any {@link java.time.temporal.ChronoUnit ChronoUnits} greater than or equal to {@code DAYS}
+   * @return A signed 64-bit integer number of the given unit
+   * @throws NullPointerException If given a period of null
+   * @throws UnsupportedTemporalTypeException If given a null or invalid unit
+   */
+  public long periodToUnit(ChronoPeriod period, TemporalUnit unit)
+  {
+    long days = periodToDays(period);
+    return switch (unit)
+    {
+      case DAYS -> days;
+      case WEEKS -> daysToApproxWeeks(days);
+      case MONTHS -> daysToApproxMonths(days);
+      case YEARS -> days / DAYS_PER_COMMON_YEAR;
+      case DECADES -> days / (DAYS_PER_COMMON_YEAR * 10);
+      case CENTURIES -> days / (DAYS_PER_COMMON_YEAR * 100);
+      case MILLENNIA -> days / (DAYS_PER_COMMON_YEAR * 1000);
+      case ERAS -> days / (DAYS_PER_COMMON_YEAR * 1_000_000_000L);
+      case FOREVER -> 0;
+      default -> throw invalidUnitError();
+    };
+  }
+
+  /**
+   * Calculates how many total days are represented by this {@link java.time.chrono.ChronoPeriod},
+   * not including the 366th day of leap years. All years equal 365 days and all months equal 28 days.
+   * Negative fields are valid and will be counted; ie "-1 year and 5 days" will return -360
+   * @param period A {@link java.time.chrono.ChronoPeriod}, may hold negative units, not null
+   * @return A signed 64-bit integer number of days
+   * @throws NullPointerException If given a period of null
+   */
+  public long periodToDays(ChronoPeriod period)
+  {
+    if (period == null)
+      throw nullPeriodError();
+    long out = 0;
+    for (TemporalUnit unit : period.getUnits())
+      out += unitValueToDays(unit, period.get(unit));
+    return out;
   }
 
   // Package Private Methods
@@ -651,5 +698,19 @@ public class ModernDigitalChronology
       case DAYS -> value;
       default -> throw invalidUnitError();
     };
+  }
+
+  private long daysToApproxWeeks(long days)
+  {
+    long years = days / DAYS_PER_COMMON_YEAR;
+    days = days % DAYS_PER_COMMON_YEAR;
+    return WEEKS_PER_YEAR * years + (days / DAYS_PER_WEEK);
+  }
+
+  private long daysToApproxMonths(long days)
+  {
+    long years = days / DAYS_PER_COMMON_YEAR;
+    days = days % DAYS_PER_COMMON_YEAR;
+    return MONTHS_PER_YEAR * years + (days / DAYS_PER_MONTH);
   }
 }

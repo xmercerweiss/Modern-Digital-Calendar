@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 
 import static java.util.Map.entry;
 import static java.time.temporal.ChronoField.*;
+import static java.time.temporal.ChronoUnit.*;
 
 import static net.xmercerweiss.mdc.CustomField.*;
 
@@ -146,6 +147,13 @@ public class ModernDigitalDate
   {
     return new IllegalArgumentException(
       "ModernDigitalDate passed non-ChronoLocalDate temporal object; all temporal objects must be dates"
+    );
+  }
+
+  private static IllegalArgumentException invalidAmountError()
+  {
+    return new IllegalArgumentException(
+      "ModernDigitalDate passed TemporalAmount other than ChronoPeriod; can only accept date-based amounts of time"
     );
   }
 
@@ -490,7 +498,14 @@ public class ModernDigitalDate
   @Override
   public ChronoLocalDate plus(TemporalAmount amount)
   {
-    return ChronoLocalDate.super.plus(amount);
+    if (amount instanceof ChronoPeriod period)
+    {
+      return calculateDateAfter(
+        CHRONO.normalizePeriod(period)
+      );
+    }
+    else
+      throw invalidAmountError();
   }
 
   // TODO implement, test, and document
@@ -504,7 +519,15 @@ public class ModernDigitalDate
   @Override
   public ChronoLocalDate minus(TemporalAmount amount)
   {
-    return ChronoLocalDate.super.minus(amount);
+    if (amount instanceof ChronoPeriod period)
+    {
+      return calculateDateAfter(
+        CHRONO.normalizePeriod(period)
+          .multipliedBy(-1)
+      );
+    }
+    else
+      throw invalidAmountError();
   }
 
   // TODO implement, test, and document
@@ -514,22 +537,48 @@ public class ModernDigitalDate
     return ChronoLocalDate.super.minus(amountToSubtract, unit);
   }
 
-  // TODO implement, test, and document
+  /**
+   * Important notes on the use of this function can be found at {@code docs/MISC.md#ChronoPeriods}
+   * <br><br>
+   * Equivalent to...
+   * <pre>{@code
+   * ModernDigitalChronology.periodToUnit(
+   *   thisDate.until(temporal),
+   *   unit
+   * );
+   * }</pre>
+   * @param temporal Must be a valid {@link java.time.chrono.ChronoLocalDate}, not null
+   * @param unit Any {@link java.time.temporal.ChronoUnit ChronoUnits} greater than or equal to {@code DAYS}
+   * @return A signed 64-bit integer number of the given unit
+   * @throws NullPointerException If given a date of null
+   * @throws UnsupportedTemporalTypeException If given a null or invalid unit
+   */
   @Override
   public long until(Temporal temporal, TemporalUnit unit)
   {
     if (temporal instanceof ChronoLocalDate date)
     {
-      return 0;
+      ChronoPeriod period = until(date);
+      return CHRONO.periodToUnit(period, unit);
     }
     else
       throw invalidTemporalError();
   }
 
-  // TODO implement, test, and document
+  /**
+   * Important notes on the use of this function can be found at {@code docs/MISC.md#ChronoPeriods}
+   * <br><br>
+   * Calculates the difference between this {@code Date} and the given {@link java.time.chrono.ChronoLocalDate}
+   * as a {@link java.time.chrono.ChronoPeriod}. Will be negative if the given date is before this {@code Date}
+   * @param date A valid {@link java.time.chrono.ChronoLocalDate}, not null
+   * @return A new {@link java.time.chrono.ChronoPeriod}
+   * @throws NullPointerException If given a date of null
+   */
   @Override
   public ChronoPeriod until(ChronoLocalDate date)
   {
+    if (date == null)
+      throw CHRONO.nullDateError();
     ModernDigitalDate that = date instanceof ModernDigitalDate ?
       (ModernDigitalDate) date : ModernDigitalDate.ofEpochDay(date.toEpochDay());
     ModernDigitalDate start = this.isBefore(that) ? this : that;
@@ -810,6 +859,13 @@ public class ModernDigitalDate
     );
   }
 
+  private ModernDigitalDate calculateDateAfter(ChronoPeriod period)
+  {
+    long totalMonths = CHRONO.MONTHS_PER_YEAR * period.get(YEARS);
+    totalMonths += period.get(MONTHS) + this.getLong(MONTH_OF_YEAR);
+    // TODO finish this
+  }
+
   private String formatterStringToOutput(String fmt)
   {
     StringBuilder out = new StringBuilder();
@@ -945,4 +1001,5 @@ public class ModernDigitalDate
       case NARROW, NARROW_STANDALONE -> String.valueOf(value);
     };
   }
+
 }

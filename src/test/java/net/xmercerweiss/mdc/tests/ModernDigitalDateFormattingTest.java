@@ -14,7 +14,7 @@ import net.xmercerweiss.mdc.*;
 import static net.xmercerweiss.mdc.ModernDigitalEra.*;
 
 
-public class ModernDigitalDateUsageTest
+public class ModernDigitalDateFormattingTest
 {
   private static final Map<ModernDigitalDate,String> VALID_DATE_TO_ISO_LOCAL_STR = Map.ofEntries(
     entry(ModernDigitalDate.of(BEFORE_EPOCH, 1000, 13, 28), "-1000-13-28"),
@@ -137,15 +137,5 @@ public class ModernDigitalDateUsageTest
       String actual = date.format(fmt);
       assertEquals(expected, actual);
     }
-  }
-
-  @Test
-  void Until_WidthValidDates_ProducesExpected()
-  {
-    var a = ModernDigitalDate.of(2, 1, 7);
-    var b = ModernDigitalDate.of(1, 1, 1);
-    System.out.println(
-      a.until(b)
-    );
   }
 }
