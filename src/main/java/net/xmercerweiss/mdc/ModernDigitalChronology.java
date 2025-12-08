@@ -1,15 +1,11 @@
 package net.xmercerweiss.mdc;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Locale;
+import java.util.*;
 import java.time.*;
 import java.time.chrono.*;
 import java.time.temporal.*;
 import java.time.format.TextStyle;
-
 import static java.util.Map.entry;
 import static java.time.temporal.ChronoField.*;
 import static java.time.temporal.ChronoUnit.*;
@@ -22,7 +18,7 @@ import static java.time.temporal.ChronoUnit.*;
  * {@link java.time.LocalTime}, {@link java.time.LocalDateTime}, or {@link java.time.Duration}) or values
  * (such as {@link java.time.temporal.ChronoUnit#HOURS}) will typically throw an {@code UnsupportedOperationException}
  * @author Xavier Mercerweiss
- * @version v1.0 2025-12-02
+ * @version v1.0 2025-12-08
  */
 public class ModernDigitalChronology
   extends AbstractChronology
@@ -128,7 +124,7 @@ public class ModernDigitalChronology
   static NullPointerException nullPeriodError()
   {
     return new NullPointerException(
-      "ModernDigitalChronology attempted to normalize a null ChronoPeriod"
+      "ModernDigitalChronology attempted to access a null ChronoPeriod"
     );
   }
 
@@ -607,7 +603,7 @@ public class ModernDigitalChronology
    * Returns a copy of this {@link java.time.chrono.ChronoPeriod} with each unit normalized
    * to the values used within this {@code Chronology}
    * <br><br>
-   * Years are assumed to be 365 day long regardless of how many leap days would occur over
+   * Years are assumed to be 365 days long regardless of how many leap days would occur over
    * a number of years. 13 months will be normalized into a year, and 28 days into a month
    * <br><br>
    * For instance, a period of "15 months and 42 days" would be normalized as
@@ -634,8 +630,7 @@ public class ModernDigitalChronology
   }
 
   /**
-   * <strong>WARNING:</strong> this method was hastily written and be inconsistent with other methods in this
-   * class which work with {@link java.time.chrono.ChronoPeriod ChronoPeriods}; double-check your results carefully
+   * <strong>NOTE:</strong> This method may return inconsistent results. Notes discussing this can be found at {@code docs/MISC.md#ChronoPeriods}
    * <br><br>
    * Approximates how many wholes of a given {@link java.time.temporal.TemporalUnit} are represented by a given {@link java.time.chrono.ChronoPeriod},
    * not including the 366th day of leap years. All years equal 365 days and all months equal 28 days
@@ -658,8 +653,39 @@ public class ModernDigitalChronology
       case CENTURIES -> days / (DAYS_PER_COMMON_YEAR * 100);
       case MILLENNIA -> days / (DAYS_PER_COMMON_YEAR * 1000);
       case ERAS -> days / (DAYS_PER_COMMON_YEAR * 1_000_000_000L);
+      // The docs (https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/ChronoUnit.html#ERAS)
+      // state that "the duration of an era is artificially defined as 1,000,000,000 years," for consistency this is upheld
       case FOREVER -> 0;
       default -> throw invalidUnitError();
+    };
+  }
+
+  /**
+   * <strong>NOTE:</strong> This method may return inconsistent results. Notes discussing this can be found at {@code docs/MISC.md#ChronoPeriods}
+   *
+   * Returns a new {@link java.time.chrono.ChronoPeriod} representing a given number of a given
+   * {@link java.time.temporal.TemporalUnit}
+   * @param value A signed 32-bit integer number of units
+   * @param unit Any {@link java.time.temporal.ChronoUnit} greater than or equal to {@code DAYS}, except {@code FOREVER}; not null
+   * @return A new {@link java.time.chrono.ChronoPeriod} instance
+   * @throws UnsupportedTemporalTypeException If given a null or invalid unit
+   */
+  public ChronoPeriod unitToPeriod(int value, TemporalUnit unit)
+  {
+    return switch (unit)
+    {
+      case DAYS -> Period.ofDays(value);
+      case WEEKS -> Period.ofDays(value * 7);
+      case MONTHS -> Period.ofMonths(value);
+      case YEARS -> Period.ofYears(value);
+      case DECADES -> Period.ofYears(value * 10);
+      case CENTURIES -> Period.ofYears(value * 100);
+      case MILLENNIA -> Period.ofYears(value * 1000);
+      case ERAS -> Period.ZERO.plusYears(value * 1_000_000_000L);
+      // The docs (https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/ChronoUnit.html#ERAS)
+      // state that "the duration of an era is artificially defined as 1,000,000,000 years," for consistency this is upheld
+      default -> throw invalidUnitError();
+      // FOREVER is an invalid unit for this method; you can't have a period with an infinite length
     };
   }
 

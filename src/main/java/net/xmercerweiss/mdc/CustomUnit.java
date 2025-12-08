@@ -7,7 +7,7 @@ import java.time.temporal.*;
 /**
  * Custom {@link java.time.temporal.TemporalUnit} values for internal use
  * @author Xavier Mercerweiss
- * @version v1.0 2025-12-02
+ * @version v1.0 2025-12-08
  */
 enum CustomUnit
   implements TemporalUnit

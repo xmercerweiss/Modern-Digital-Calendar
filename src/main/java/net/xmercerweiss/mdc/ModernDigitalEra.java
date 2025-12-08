@@ -14,7 +14,7 @@ import java.time.format.TextStyle;
  * The Modern Digital Calendar only has 2 era, Before Epoch and Since Epoch, with the epoch being 1970 ISO. The epoch
  * is year 0, and is always considered Since Epoch for simplicity. The year 2000 ISO is 30 SE, and 1900 ISO is 70 BE.
  * @author Xavier Mercerweiss
- * @version v1.0 2025-12-02
+ * @version v1.0 2025-12-08
  */
 public enum ModernDigitalEra
   implements Era, Serializable

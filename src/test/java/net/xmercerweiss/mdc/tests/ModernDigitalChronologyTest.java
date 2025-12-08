@@ -1,7 +1,6 @@
 package net.xmercerweiss.mdc.tests;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import static java.util.Map.entry;
 import java.time.DateTimeException;
@@ -10,9 +9,14 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import net.xmercerweiss.mdc.*;
-import net.xmercerweiss.mdc.tests.util.*;
+import net.xmercerweiss.mdc.utils.*;
 
 
+/**
+ * This class tests the most important of {@link ModernDigitalChronology}'s public utility methods
+ * @author Xavier Mercerweiss
+ * @version v1.0 2025-12-08
+ */
 public class ModernDigitalChronologyTest
 {
   private static final ModernDigitalChronology CHRONO = ModernDigitalChronology.INSTANCE;

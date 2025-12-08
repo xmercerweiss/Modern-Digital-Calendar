@@ -14,6 +14,11 @@ import net.xmercerweiss.mdc.*;
 import static net.xmercerweiss.mdc.ModernDigitalEra.*;
 
 
+/**
+ * This class tests {@link ModernDigitalDate}'s querying and text formatting methods
+ * @author Xavier Mercerweiss
+ * @version v1.0 2025-12-08
+ */
 public class ModernDigitalDateFormattingTest
 {
   private static final Map<ModernDigitalDate,String> VALID_DATE_TO_ISO_LOCAL_STR = Map.ofEntries(

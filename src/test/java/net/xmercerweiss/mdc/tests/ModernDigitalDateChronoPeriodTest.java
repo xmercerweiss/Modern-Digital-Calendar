@@ -10,13 +10,15 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import net.xmercerweiss.mdc.*;
-import net.xmercerweiss.mdc.tests.util.*;
+import net.xmercerweiss.mdc.utils.*;
 
 
 /**
- * This class provides testing of {@code ModernDigitalDate}'s methods that utilize
+ * This class tests {@link ModernDigitalDate}'s methods that utilize
  * {@link java.time.chrono.ChronoPeriod ChronoPeriods}. Important notes regarding
- * these methods can be found in {@code docs/MISC.MD#ChronoPeriods}
+ * these methods can be found at {@code docs/MISC.MD#ChronoPeriods}
+ * @author Xavier Mercerweiss
+ * @version v1.0 2025-12-08
  */
 public class ModernDigitalDateChronoPeriodTest
 {

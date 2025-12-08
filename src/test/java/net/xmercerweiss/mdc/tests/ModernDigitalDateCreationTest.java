@@ -1,10 +1,8 @@
 package net.xmercerweiss.mdc.tests;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.time.LocalDate;
-import java.time.DateTimeException;
+import java.time.*;
 import static java.util.Map.entry;
 
 import org.junit.jupiter.api.*;
@@ -13,6 +11,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import net.xmercerweiss.mdc.*;
 
 
+/**
+ * This class tests {@link ModernDigitalDate}'s static factory methods
+ * @author Xavier Mercerweiss
+ * @version v1.0 2025-12-08
+ */
 public class ModernDigitalDateCreationTest
 {
   private static final List<Integer[]> VALID_DATE_FIELDS = List.of(

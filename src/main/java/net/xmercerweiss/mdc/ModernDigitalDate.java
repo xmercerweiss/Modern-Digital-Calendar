@@ -1,22 +1,18 @@
 package net.xmercerweiss.mdc;
 
 import java.io.Serializable;
-import java.time.format.TextStyle;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.HashMap;
 import java.util.function.BiFunction;
 import java.time.*;
 import java.time.chrono.*;
 import java.time.temporal.*;
-import java.time.format.DateTimeFormatter;
-
+import java.time.format.*;
 import static java.util.Map.entry;
 import static java.time.temporal.ChronoField.*;
 import static java.time.temporal.ChronoUnit.*;
 
+import net.xmercerweiss.mdc.utils.*;
 import static net.xmercerweiss.mdc.CustomField.*;
 
 
@@ -25,7 +21,7 @@ import static net.xmercerweiss.mdc.CustomField.*;
  * <br><br>
  * Note that attempting to work with time-based values using this class is an error; see {@link net.xmercerweiss.mdc.ModernDigitalChronology}
  * @author Xavier Mercerweiss
- * @version v1.0 2025-12-02
+ * @version v1.0 2025-12-08
  */
 public class ModernDigitalDate
   implements ChronoLocalDate, Serializable
@@ -482,8 +478,8 @@ public class ModernDigitalDate
 
   /**
    * Equivalent to {@link net.xmercerweiss.mdc.ModernDigitalChronology#range(TemporalField)}
-   * @param field A {@link java.time.temporal.TemporalField}, must be {@link net.xmercerweiss.mdc.ModernDigitalChronology#isSupported supported}
-   *              and not null
+   * @param field A {@link java.time.temporal.TemporalField}, must be
+   *              {@link net.xmercerweiss.mdc.ModernDigitalChronology#isSupported supported} and not null
    * @return A {@link java.time.temporal.ValueRange}
    * @throws UnsupportedTemporalTypeException If given an unsupported field
    */
@@ -493,7 +489,15 @@ public class ModernDigitalDate
     return CHRONO.range(field);
   }
 
-  // TODO implement, test, and document
+  /**
+   * <strong>NOTE:</strong> This method may return inconsistent results. Notes discussing this can be found at {@code docs/MISC.md#ChronoPeriods}
+   * <br><br>
+   * Returns a new {@link ModernDigitalDate} instance representing this {@code Date}
+   * plus a given {@link java.time.chrono.ChronoPeriod} of time
+   * @param amount A {@link java.time.chrono.ChronoPeriod}, not null
+   * @return A new {@link ModernDigitalDate} instance
+   * @throws NullPointerException If given a period of null
+   */
   @Override
   public ChronoLocalDate plus(TemporalAmount amount)
   {
@@ -505,14 +509,33 @@ public class ModernDigitalDate
       throw invalidAmountError();
   }
 
-  // TODO implement, test, and document
+  /**
+   * <strong>NOTE:</strong> This method may return inconsistent results. Notes discussing this can be found at {@code docs/MISC.md#ChronoPeriods}
+   * <br><br>
+   * Returns a new {@link ModernDigitalDate} instance representing this {@code Date}
+   * plus a given number of a given {@link java.time.temporal.TemporalUnit}
+   * @param value A signed 64-bit (truncated to 32-bit) integer number of units
+   * @param unit Any {@link java.time.temporal.ChronoUnit} greater than or equal to {@code DAYS}, except {@code FOREVER}; not null
+   * @return A new {@link ModernDigitalDate} instance
+   * @throws UnsupportedTemporalTypeException If given a null or invalid unit
+   */
   @Override
-  public ChronoLocalDate plus(long amountToAdd, TemporalUnit unit)
+  public ChronoLocalDate plus(long value, TemporalUnit unit)
   {
-    return ChronoLocalDate.super.plus(amountToAdd, unit);
+    return plus(
+      CHRONO.unitToPeriod(MathUtils.narrowLong(value), unit)
+    );
   }
 
-  // TODO implement, test, and document
+  /**
+   * <strong>NOTE:</strong> This method may return inconsistent results. Notes discussing this can be found at {@code docs/MISC.md#ChronoPeriods}
+   * <br><br>
+   * Returns a new {@link ModernDigitalDate} instance representing this {@code Date}
+   * minus a given {@link java.time.chrono.ChronoPeriod} of time
+   * @param amount A {@link java.time.chrono.ChronoPeriod}, not null
+   * @return A new {@link ModernDigitalDate} instance
+   * @throws NullPointerException If given a period of null
+   */
   @Override
   public ChronoLocalDate minus(TemporalAmount amount)
   {
@@ -524,15 +547,26 @@ public class ModernDigitalDate
       throw invalidAmountError();
   }
 
-  // TODO implement, test, and document
+  /**
+   * <strong>NOTE:</strong> This method may return inconsistent results. Notes discussing this can be found at {@code docs/MISC.md#ChronoPeriods}
+   * <br><br>
+   * Returns a new {@link ModernDigitalDate} instance representing this {@code Date}
+   * minus a given number of a given {@link java.time.temporal.TemporalUnit}
+   * @param value A signed 64-bit (truncated to 32-bit) integer number of units
+   * @param unit Any {@link java.time.temporal.ChronoUnit} greater than or equal to {@code DAYS}, except {@code FOREVER}; not null
+   * @return A new {@link ModernDigitalDate} instance
+   * @throws UnsupportedTemporalTypeException If given a null or invalid unit
+   */
   @Override
-  public ChronoLocalDate minus(long amountToSubtract, TemporalUnit unit)
+  public ChronoLocalDate minus(long value, TemporalUnit unit)
   {
-    return ChronoLocalDate.super.minus(amountToSubtract, unit);
+    return minus(
+      CHRONO.unitToPeriod(MathUtils.narrowLong(value), unit)
+    );
   }
 
   /**
-   * Important notes on the use of this function can be found at {@code docs/MISC.md#ChronoPeriods}
+   * <strong>NOTE:</strong> This method may return inconsistent results. Notes discussing this can be found at {@code docs/MISC.md#ChronoPeriods}
    * <br><br>
    * Equivalent to...
    * <pre>{@code
@@ -542,7 +576,7 @@ public class ModernDigitalDate
    * );
    * }</pre>
    * @param temporal Must be a valid {@link java.time.chrono.ChronoLocalDate}, not null
-   * @param unit Any {@link java.time.temporal.ChronoUnit ChronoUnits} greater than or equal to {@code DAYS}
+   * @param unit Any {@link java.time.temporal.ChronoUnit ChronoUnits} greater than or equal to {@code DAYS}, not null
    * @return A signed 64-bit integer number of the given unit
    * @throws NullPointerException If given a date of null
    * @throws UnsupportedTemporalTypeException If given a null or invalid unit
@@ -560,7 +594,7 @@ public class ModernDigitalDate
   }
 
   /**
-   * Important notes on the use of this function can be found at {@code docs/MISC.md#ChronoPeriods}
+   * <strong>NOTE:</strong> This method may return inconsistent results. Notes discussing this can be found at {@code docs/MISC.md#ChronoPeriods}
    * <br><br>
    * Calculates the difference between this {@code Date} and the given {@link java.time.chrono.ChronoLocalDate}
    * as a {@link java.time.chrono.ChronoPeriod}. Will be negative if the given date is before this {@code Date}
@@ -865,9 +899,10 @@ public class ModernDigitalDate
 
   private ModernDigitalDate calculateDateAfter(ChronoPeriod period)
   {
-    int prolepticYear = this.getYear();
-    int monthOfYear = this.getMonth();
-    int dayOfMonth = this.getDayOfMonth();
+    if (period == null)
+      throw CHRONO.nullPeriodError();
+    int monthOfYear = getMonth();
+    int dayOfMonth = getDayOfMonth();
     int correction = 0;
     if (monthOfYear == 0)
     {
@@ -875,15 +910,19 @@ public class ModernDigitalDate
       dayOfMonth = 28;
       monthOfYear = 13;
     }
-    long totalMonths = CHRONO.MONTHS_PER_YEAR * period.get(YEARS) + period.get(MONTHS) + monthOfYear;
-    int signum = totalMonths >= 0 ? 1 : -1;
-    totalMonths = Math.abs(totalMonths);
-    int year = (int) (((totalMonths - 1) / CHRONO.MONTHS_PER_YEAR) * signum) + prolepticYear;
-    int month = (int) (((totalMonths - 1) % CHRONO.MONTHS_PER_YEAR) + 1) * signum;
-    while (month <= 0)
+    long totalMonths = CHRONO.MONTHS_PER_YEAR * period.get(YEARS)
+      + period.get(MONTHS) + monthOfYear;
+    int year = getYear();
+    int month;
+    if (totalMonths <= 0)
     {
-      year -= 1;
-      month += CHRONO.MONTHS_PER_YEAR;
+      year += (int) (totalMonths / CHRONO.MONTHS_PER_YEAR) - 1;
+      month = (int) (totalMonths % CHRONO.MONTHS_PER_YEAR) + CHRONO.MONTHS_PER_YEAR;
+    }
+    else
+    {
+      year += (int) (totalMonths - 1) / CHRONO.MONTHS_PER_YEAR;
+      month = (int) ((totalMonths - 1) % CHRONO.MONTHS_PER_YEAR) + 1;
     }
     return ModernDigitalDate.ofEpochDay(
       CHRONO.epochDay(year, month, dayOfMonth)
