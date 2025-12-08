@@ -1,5 +1,5 @@
 # The Modern Digital Calendar System
-This document describes this project conceptually. For technical documentation, see [`docs/INDEX.md`](docs/INDEX.md).
+This document describes this project conceptually. For technical documentation, see [`docs/TECHNICAL.md`](docs/TECHNICAL.md).
 
 _This project was created without the use of generative AI development tools. Any defects are the result of my feeble human mind._ 
 

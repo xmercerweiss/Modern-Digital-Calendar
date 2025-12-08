@@ -38,7 +38,14 @@ public enum ModernDigitalEra
   implements Era, Serializable
 {
   // Enumerated Constants
+  /**
+   * The era of all years exclusively before 1970 ISO
+   */
   BEFORE_EPOCH(0, "Before Epoch", "BE", "B"),
+
+  /**
+   * The era of all years after and including 1970 ISO
+   */
   SINCE_EPOCH(1, "Since Epoch", "SE", "S");
 
   // Error Methods
@@ -60,7 +67,7 @@ public enum ModernDigitalEra
   /**
    * Obtains the {@link java.time.chrono.Era} enum represented by a given integer value
    * @param value A signed 32-bit integer
-   * @return BE if value < 0, SE if value >= 0
+   * @return BE if value &lt; 0, SE if value >= 0
    */
   public static Era ofValue(int value)
   {
@@ -172,6 +179,7 @@ public enum ModernDigitalEra
    * <br><br>
    * The returned {@code String} will differ based on the {@link java.time.format.TextStyle} given.
    * <table>
+   *   <caption>Example output for each TextStyle</caption>
    *   <tr>
    *     <td>TextStyle</td> <td>Display Name (SE)</td>
    *   </tr>

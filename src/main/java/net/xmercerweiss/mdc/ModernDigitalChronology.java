@@ -43,23 +43,66 @@ public class ModernDigitalChronology
   implements Serializable
 {
   // Class Constants
+  /**
+   * The singleton instance of this {@code Chronology}
+   */
   public static final ModernDigitalChronology INSTANCE = new ModernDigitalChronology();
 
+  /**
+   * The difference between any given MDC year and its ISO equivalent
+   */
   public static final int ISO_YEAR_OFFSET = 1970;
 
+  /**
+   * The number of days in a full week
+   */
   public static final int DAYS_PER_WEEK = 7;
+
+  /**
+   * The number of weeks in each month; always 4
+   */
   public static final int WEEKS_PER_MONTH = 4;
+
+  /**
+   * The number of days in each month; 28 for all non-leap (> 0) months
+   */
   public static final int DAYS_PER_MONTH = DAYS_PER_WEEK * WEEKS_PER_MONTH;
+
+  /**
+   * The number of months in each year; always 13
+   */
   public static final int MONTHS_PER_YEAR = 13;
+
+  /**
+   * The number of weeks in each year, not counting leap days; always 52
+   */
   public static final int WEEKS_PER_YEAR = WEEKS_PER_MONTH * MONTHS_PER_YEAR;
+
+  /**
+   * The number of weeks in each quarter, not counting leap days; always 13
+   */
   public static final int WEEKS_PER_QUARTER = WEEKS_PER_YEAR / 4;
+
+  /**
+   * The number of non-leap days in each year; always 364
+   */
   public static final int NON_LEAP_DAYS_PER_YEAR = MONTHS_PER_YEAR * DAYS_PER_MONTH;
+
+  /**
+   * The total number of days in a common year; always 365
+   */
   public static final int DAYS_PER_COMMON_YEAR = NON_LEAP_DAYS_PER_YEAR + 1;
+
+  /**
+   * The total number of days in a leap year; always 366
+   */
   public static final int DAYS_PER_LEAP_YEAR = NON_LEAP_DAYS_PER_YEAR + 2;
 
-  // The difference, in days, between an Epoch Day and a Modified Julian Day (MJD)
-  // The MJD is the number of full days since midnight on November 17th 1858
-  // January 1st 1970 is MJD 40,587
+  /**
+  * The difference, in days, between an Epoch Day and a Modified Julian Day (MJD).
+  * The MJD is the number of days since midnight on November 17th 1858 ISO.
+  * January 1st 1970 ISO is MJD 40,587
+  */
   public static final int MJD_EPOCH_OFFSET_IN_DAYS = 40587;
 
   private static final String ID = "ModernDigital";
@@ -217,7 +260,7 @@ public class ModernDigitalChronology
 
   /**
    * Equivalent to {@link net.xmercerweiss.mdc.ModernDigitalDate#of(int, int, int)}
-   * @param prolepticYear The number of years before (< 0) or since (>= 0) 1970 ISO
+   * @param prolepticYear The number of years before (&lt;0) or since (>= 0) 1970 ISO
    * @param monthOfYear The month of the year, 0 for leap days
    * @param dayOfMonth The day of the month, within [1, 28]
    * @return A new {@link net.xmercerweiss.mdc.ModernDigitalDate}
@@ -246,7 +289,7 @@ public class ModernDigitalChronology
 
   /**
    * Equivalent to {@link net.xmercerweiss.mdc.ModernDigitalDate#ofYearDay(int, int)}
-   * @param prolepticYear The number of years before (< 0) or since (>= 0) 1970 ISO
+   * @param prolepticYear The number of years before (&lt;0) or since (>= 0) 1970 ISO
    * @param dayOfYear The day of the year, within [1, 366]
    * @return A new {@link net.xmercerweiss.mdc.ModernDigitalDate}
    * @throws DateTimeException If given an invalid date
@@ -259,7 +302,7 @@ public class ModernDigitalChronology
 
   /**
    * Equivalent to {@link net.xmercerweiss.mdc.ModernDigitalDate#ofEpochDay(long)}
-   * @param epochDay The number of days before (< 0) or since (>= 0) 1970-01-01 ISO
+   * @param epochDay The number of days before (&lt;0) or since (>= 0) 1970-01-01 ISO
    * @return A new {@link net.xmercerweiss.mdc.ModernDigitalDate}
    */
   @Override
@@ -292,7 +335,7 @@ public class ModernDigitalChronology
 
   /**
    * Determines whether the given proleptic year is a leap year
-   * @param prolepticYear A number of years before (< 0) or since (>= 0) 1970 ISO
+   * @param prolepticYear A number of years before (&lt;0) or since (>= 0) 1970 ISO
    * @return {@code true} if the given year is a leap year, {@code false} otherwise
    */
   @Override
@@ -303,7 +346,7 @@ public class ModernDigitalChronology
   }
 
   /**
-   * Calculates the number of years before (< 0) or since (>= 0) 1970 ISO using the era-year
+   * Calculates the number of years before (&lt;0) or since (>= 0) 1970 ISO using the era-year
    * @param era A {@link net.xmercerweiss.mdc.ModernDigitalEra}, not null
    * @param yearOfEra The year of the era, must be >= 0
    * @return The proleptic year
@@ -327,7 +370,7 @@ public class ModernDigitalChronology
 
   /**
    * Determines the era of the given proleptic year
-   * @param prolepticYear A number of years before (< 0) or since (>= 0) 1970 ISO
+   * @param prolepticYear A number of years before (&lt;0) or since (>= 0) 1970 ISO
    * @return A {@link net.xmercerweiss.mdc.ModernDigitalEra}
    */
   @Override
@@ -499,7 +542,7 @@ public class ModernDigitalChronology
    * @param yearOfEra The year of the era, must be >= 0
    * @param monthOfYear The month of the year, 0 for leap days
    * @param dayOfMonth The day of the month, within [1, 28]
-   * @return A signed 64-bit integer number of days before (< 0) or since (>= 0) the epoch
+   * @return A signed 64-bit integer number of days before (&lt;0) or since (>= 0) the epoch
    * @throws DateTimeException If the given year, month, or day is invalid
    */
   public long epochDay(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
@@ -509,10 +552,10 @@ public class ModernDigitalChronology
 
   /**
    * Calculates the epoch day of the given date
-   * @param prolepticYear The number of years before (< 0) or since (>= 0) 1970 ISO
+   * @param prolepticYear The number of years before (&lt;0) or since (>= 0) 1970 ISO
    * @param monthOfYear The month of the year, 0 for leap days
    * @param dayOfMonth The day of the month, within [1, 28]
-   * @return A signed 64-bit integer number of days before (< 0) or since (>= 0) the epoch
+   * @return A signed 64-bit integer number of days before (&lt;0) or since (>= 0) the epoch
    * @throws DateTimeException If the given month or day is invalid
    */
   public long epochDay(int prolepticYear, int monthOfYear, int dayOfMonth)
@@ -609,7 +652,7 @@ public class ModernDigitalChronology
 
   /**
    * Converts a proleptic year to the year of its respective era
-   * @param prolepticYear A number of years before (< 0) or since (>= 0) 1970 ISO
+   * @param prolepticYear A number of years before (&lt;0) or since (>= 0) 1970 ISO
    * @return A signed 32-bit integer within [0, infinity)
    */
   public int prolepticToEraYear(int prolepticYear)

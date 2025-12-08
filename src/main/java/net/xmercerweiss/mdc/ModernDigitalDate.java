@@ -187,7 +187,7 @@ public class ModernDigitalDate
 
   /**
    * Creates a new {@code ModernDigitalDate} instance representing the specified date
-   * @param prolepticYear The number of years before (< 0) or since (>= 0) 1970 ISO
+   * @param prolepticYear The number of years before (&lt;0) or since (>= 0) 1970 ISO
    * @param monthOfYear The month of the year, 0 for leap days
    * @param dayOfMonth The day of the month, within [1, 28]
    * @return A new {@code ModernDigitalDate}
@@ -202,7 +202,7 @@ public class ModernDigitalDate
 
   /**
    * Creates a new {@code ModernDigitalDate} instance representing the given ordinal (1st, 2nd, 3rd...) day of the specified proleptic year
-   * @param prolepticYear The number of years before (< 0) or since (>= 0) 1970 ISO
+   * @param prolepticYear The number of years before (&lt;0) or since (>= 0) 1970 ISO
    * @param dayOfYear The ordinal day of the year
    * @return A new {@code ModernDigitalDate}
    * @throws DateTimeException If given an invalid date
@@ -217,7 +217,7 @@ public class ModernDigitalDate
   /**
    * Creates a new {@code ModernDigitalDate} instance representing the date occurring exactly a given number of days
    * before or since 1970-01-01 ISO
-   * @param epochDay The number of days before (< 0) or since (>= 0) 1970-01-01 ISO
+   * @param epochDay The number of days before (&lt;0) or since (>= 0) 1970-01-01 ISO
    * @return A new {@code ModernDigitalDate}
    */
   public static ModernDigitalDate ofEpochDay(long epochDay)
@@ -458,7 +458,7 @@ public class ModernDigitalDate
 
   /**
    * Obtains the difference, in days, between this {@code Date} and 1970-01-01 ISO
-   * @return A signed 64-bit integer, < 0 if this date comes before the epoch, > 0 if this date comes after the epoch,
+   * @return A signed 64-bit integer, &lt; 0 if this date comes before the epoch, > 0 if this date comes after the epoch,
    *         and 0 if this date <em>is</em> the epoch
    */
   @Override
