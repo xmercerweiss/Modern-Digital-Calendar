@@ -39,8 +39,7 @@ public class ModernDigitalDate
   private static final char STOP_IGNORE_CHAR = ']';
 
   private static final String VALUE_META_FMT = "%%0%sd";
-  private static final String DISPLAY_FMT =
-    "'%s' G y-MM-dd".formatted(CHRONO.getId());
+  private static final String DISPLAY_FMT = "'%s' G y-MM-dd".formatted(CHRONO.getId());
 
   private static final Map<String,TemporalField> FIELD_NAME_TO_FIELD = Map.ofEntries(
     entry("Era", ERA),
@@ -500,9 +499,7 @@ public class ModernDigitalDate
   {
     if (amount instanceof ChronoPeriod period)
     {
-      return calculateDateAfter(
-        CHRONO.normalizePeriod(period)
-      );
+      return calculateDateAfter(period);
     }
     else
       throw invalidAmountError();
@@ -521,10 +518,7 @@ public class ModernDigitalDate
   {
     if (amount instanceof ChronoPeriod period)
     {
-      return calculateDateAfter(
-        CHRONO.normalizePeriod(period)
-          .multipliedBy(-1)
-      );
+      return calculateDateAfter(period.multipliedBy(-1));
     }
     else
       throw invalidAmountError();
@@ -665,6 +659,17 @@ public class ModernDigitalDate
       return CHRONO == that.getChronology() ? 0 : -1;
     else
       return (int) (this.toEpochDay() - that.toEpochDay());
+  }
+
+  @Override
+  public boolean equals(Object other)
+  {
+    if (other == null)
+      return false;
+    else if (other instanceof ModernDigitalDate that)
+      return this.isEqual(that);
+    else
+      return false;
   }
 
   /**
@@ -808,18 +813,17 @@ public class ModernDigitalDate
   // Private Methods
   private void validateFields(Era era, int yearOfEra, int monthOfYear, int dayOfMonth)
   {
-    if (
-      !(era instanceof ModernDigitalEra) ||
-      !range(YEAR_OF_ERA).isValidValue(yearOfEra) ||
-      !range(MONTH_OF_YEAR).isValidValue(monthOfYear) ||
-      !range(DAY_OF_MONTH).isValidValue(dayOfMonth) ||
-      (monthOfYear == 0 && dayOfMonth > range(DAY_OF_MONTH).getSmallestMaximum()) ||
-      (monthOfYear == 0 && dayOfMonth > 1 && !CHRONO.isLeapYear(
-        CHRONO.prolepticYear(era, yearOfEra)
-      ))
-    )
-      throw CHRONO.invalidDateError();
-
+      if (!(era instanceof ModernDigitalEra))
+        throw CHRONO.invalidEraError();
+      if (!range(YEAR_OF_ERA).isValidValue(yearOfEra))
+        throw CHRONO.invalidDateError(yearOfEra, YEAR_OF_ERA);
+      if (!range(MONTH_OF_YEAR).isValidValue(monthOfYear))
+        throw CHRONO.invalidDateError(monthOfYear, MONTH_OF_YEAR);
+      if (!range(DAY_OF_MONTH).isValidValue(dayOfMonth))
+        throw CHRONO.invalidDateError(dayOfMonth, DAY_OF_MONTH);
+      if ((monthOfYear == 0 && dayOfMonth > range(DAY_OF_MONTH).getSmallestMaximum()) ||
+      (monthOfYear == 0 && dayOfMonth > 1 && !CHRONO.isLeapYear(CHRONO.prolepticYear(era, yearOfEra))))
+        throw CHRONO.invalidDateError();
   }
 
   private HashMap<TemporalField,Long> epochDayToFields(long epochDay)
@@ -861,9 +865,31 @@ public class ModernDigitalDate
 
   private ModernDigitalDate calculateDateAfter(ChronoPeriod period)
   {
-    long totalMonths = CHRONO.MONTHS_PER_YEAR * period.get(YEARS);
-    totalMonths += period.get(MONTHS) + this.getLong(MONTH_OF_YEAR);
-    // TODO finish this
+    int prolepticYear = this.getYear();
+    int monthOfYear = this.getMonth();
+    int dayOfMonth = this.getDayOfMonth();
+    int correction = 0;
+    if (monthOfYear == 0)
+    {
+      correction += dayOfMonth;
+      dayOfMonth = 28;
+      monthOfYear = 13;
+    }
+    long totalMonths = CHRONO.MONTHS_PER_YEAR * period.get(YEARS) + period.get(MONTHS) + monthOfYear;
+    int signum = totalMonths >= 0 ? 1 : -1;
+    totalMonths = Math.abs(totalMonths);
+    int year = (int) (((totalMonths - 1) / CHRONO.MONTHS_PER_YEAR) * signum) + prolepticYear;
+    int month = (int) (((totalMonths - 1) % CHRONO.MONTHS_PER_YEAR) + 1) * signum;
+    while (month <= 0)
+    {
+      year -= 1;
+      month += CHRONO.MONTHS_PER_YEAR;
+    }
+    return ModernDigitalDate.ofEpochDay(
+      CHRONO.epochDay(year, month, dayOfMonth)
+        + period.get(DAYS)
+        + correction
+    );
   }
 
   private String formatterStringToOutput(String fmt)

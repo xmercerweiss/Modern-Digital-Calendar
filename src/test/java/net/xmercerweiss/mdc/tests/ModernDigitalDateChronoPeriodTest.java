@@ -184,7 +184,6 @@ public class ModernDigitalDateChronoPeriodTest
     }
   }
 
-  /*
   @Test
   void Plus_WithValidDate_ProducesExpected()
   {
@@ -192,10 +191,10 @@ public class ModernDigitalDateChronoPeriodTest
       : VALID_DATES_TO_PERIOD.entrySet()
     ) {
       ModernDigitalDate startDate = e.getKey().first();
-      ModernDigitalDate endDate = e.getKey().second();
-      expected = ;
-      actual = ;
-      assertEquals(expected, actual)
+      ModernDigitalDate expected = e.getKey().second();
+      ChronoPeriod period = e.getValue();
+      ModernDigitalDate actual = (ModernDigitalDate) startDate.plus(period);
+      assertEquals(expected, actual);
     }
   }
 
@@ -205,12 +204,11 @@ public class ModernDigitalDateChronoPeriodTest
     for (Entry<Pair<ModernDigitalDate,ModernDigitalDate>,Period> e
       : VALID_DATES_TO_PERIOD.entrySet()
     ) {
-      ModernDigitalDate startDate = e.getKey().first();
+      ModernDigitalDate expected = e.getKey().first();
       ModernDigitalDate endDate = e.getKey().second();
-      expected = ;
-      actual = ;
-      assertEquals(expected, actual)
+      ChronoPeriod period = e.getValue();
+      ModernDigitalDate actual = (ModernDigitalDate) endDate.minus(period);
+      assertEquals(expected, actual);
     }
   }
-   */
 }

@@ -106,7 +106,15 @@ public class ModernDigitalChronology
   static DateTimeException invalidDateError()
   {
     return new DateTimeException(
-      "ModernDigitalChronology attempted to create a date with invalid values in one or more fields"
+      "ModernDigitalChronology attempted to create a date with invalid values in multiple fields"
+    );
+  }
+
+  static DateTimeException invalidDateError(long value, TemporalField field)
+  {
+    return new DateTimeException(
+      "ModernDigitalChronology attempted to create a date with invalid value %d in field %s"
+        .formatted(value, field)
     );
   }
 
@@ -512,13 +520,16 @@ public class ModernDigitalChronology
   {
     ValueRange monthRange = range(MONTH_OF_YEAR);
     ValueRange dayRange = range(DAY_OF_MONTH);
-    if (!monthRange.isValidValue(monthOfYear) || !dayRange.isValidValue(dayOfMonth))
-      throw invalidDateError();
+    if (!monthRange.isValidValue(monthOfYear))
+      throw invalidDateError(monthOfYear, MONTH_OF_YEAR);
+    if (!dayRange.isValidValue(dayOfMonth))
+      throw invalidDateError(dayOfMonth, DAY_OF_MONTH);
     if (monthOfYear == 0 && dayOfMonth <= dayRange.getSmallestMaximum())
       return NON_LEAP_DAYS_PER_YEAR + dayOfMonth;
     else if (monthOfYear > 0)
       return ((monthOfYear - 1) * DAYS_PER_MONTH) + dayOfMonth;
-    else throw invalidDateError();
+    else
+      throw invalidDateError();
   }
 
   /**
@@ -546,7 +557,7 @@ public class ModernDigitalChronology
   {
     ValueRange dayOfYearRange = range(DAY_OF_YEAR);
     if (!dayOfYearRange.isValidValue(dayOfYear))
-      throw invalidDateError();
+      throw invalidDateError(dayOfYear, DAY_OF_YEAR);
     else return dayOfYear > NON_LEAP_DAYS_PER_YEAR ?
       0 : ((dayOfYear - 1) % DAYS_PER_WEEK) + 1;
   }
@@ -575,7 +586,7 @@ public class ModernDigitalChronology
   {
     ValueRange dayOfYearRange = range(DAY_OF_YEAR);
     if (!dayOfYearRange.isValidValue(dayOfYear))
-      throw invalidDateError();
+      throw invalidDateError(dayOfYear, DAY_OF_YEAR);
     else if (dayOfYear > NON_LEAP_DAYS_PER_YEAR)
       return 0;
     else

@@ -164,13 +164,12 @@ public class ModernDigitalDateCreationTest
     {
       try
       {
-        ModernDigitalDate date = ModernDigitalDate.of(
+        ModernDigitalDate.of(
           ModernDigitalEra.ofValue(expected[0]),
           expected[1],
           expected[2],
           expected[3]
         );
-        System.out.println(date);
         // If the call above succeeds, the expected error wasn't thrown
         fail("Invalid date fields did not produce DateTimeException");
       }
