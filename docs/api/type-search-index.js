@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html","k":"18"},{"p":"net.xmercerweiss.mdc","l":"ModernDigitalChronology"},{"p":"net.xmercerweiss.mdc","l":"ModernDigitalDate"},{"p":"net.xmercerweiss.mdc","l":"ModernDigitalEra","k":"9"}];updateSearchResults();

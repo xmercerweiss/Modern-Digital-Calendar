@@ -8,6 +8,6 @@ Installation instructions, API references, and examples of valid usage are linke
 ## Index
 - [Installation Guide](./INSTALL.md) - Steps for installation from Maven central
 - [Quickstart](./QUICKSTART.md) - Basic guide and examples of valid usage
-- [API Documentation](./api/index.html) - Comprehensive API docs from JavaDoc
+- [API Documentation](https://xmercerweiss.github.io/mdc) - Comprehensive API docs generated from JavaDoc
 - [Miscellany](./MISC.md) - Notes on the implementation of this library
  
