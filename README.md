@@ -1,7 +1,7 @@
 # The Modern Digital Calendar System
-This document describes this project conceptually. For technical documentation, see [`docs/TECHNICAL.md`](docs/TECHNICAL.md).
+This document describes this project conceptually. For installation and usage instructions, see [`docs/TECHNICAL.md`](docs/TECHNICAL.md).
 
-_This project was created without the use of generative AI development tools. Any defects are the result of my feeble human mind._ 
+_This project was created without the use of any AI development tools._ 
 
 ## Introduction
 The Modern Digital Calendar is a variation on the [International Fixed Calendar](https://en.wikipedia.org/wiki/International_Fixed_Calendar) paired with new month names and a set year 0 in order to produce a more structured and less ambiguous means of datekeeping. It is, in essence, this nerd's wishlist for calendar reform worked into a single, unified system. 

@@ -30,3 +30,4 @@ settings.xml
 # IntelliJ Config
 .idea/
 dist/
+out/
