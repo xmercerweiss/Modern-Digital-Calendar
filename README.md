@@ -94,3 +94,7 @@ September through December are kept, but shifted to the correct positions based 
 All months are abbreviated to their first 3 letters, except Tredecember (abbreviated as "Tred." to prevent confusion with Tertiary).
 
 Notice also that leap days are regarded as belonging to the "0th" month. This is done such that they may be easily referenced in standard `YYYY-MM-DD` notation. While it is somewhat frustrating to have the "0th" month come at the end of the year, 0 is the most reasonable value for days belonging to no month and datekeeping would be further complicated by placing leap days at the beginning of the year. While most years will only have one 1 leap day, and all others only 2, this notation also allows the keeping of an arbitrarily large number of leap days if ever necessary. 
+
+## License
+This project is licensed under the permissive Zero-Clause BSD License. Copyright 2025, Xavier Mercerweiss.
+ 
