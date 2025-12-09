@@ -23,8 +23,9 @@
 hs_err_pid*
 replay_pid*
 
-# Maven Output
+# Maven
 target/
+settings.xml
 
 # IntelliJ Config
 .idea/
