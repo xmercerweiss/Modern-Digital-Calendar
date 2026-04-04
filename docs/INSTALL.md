@@ -1,4 +1,6 @@
 # Installation Guide
+### NOTE: This project uses the outdated namespace `net.xmercerweiss` in Maven central. Any issues with installation likely result from this.
+
 This library is available through [Maven central](https://central.sonatype.com/artifact/net.xmercerweiss/mdc/overview).
 To use it in your project, simply add one of the following snippets to the configuration file of your build tool.
 
